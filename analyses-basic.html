@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="TJ Sullivan">
+
+<title>Data cleaning, descriptives, reliability, histograms, correlations</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="analyses-basic_files/libs/clipboard/clipboard.min.js"></script>
+<script src="analyses-basic_files/libs/quarto-html/quarto.js"></script>
+<script src="analyses-basic_files/libs/quarto-html/popper.min.js"></script>
+<script src="analyses-basic_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="analyses-basic_files/libs/quarto-html/anchor.min.js"></script>
+<link href="analyses-basic_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="analyses-basic_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="analyses-basic_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="analyses-basic_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="analyses-basic_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#load-packages-and-data" id="toc-load-packages-and-data" class="nav-link active" data-scroll-target="#load-packages-and-data">Load packages and data</a></li>
+  <li><a href="#data-restructuring" id="toc-data-restructuring" class="nav-link" data-scroll-target="#data-restructuring">Data restructuring</a></li>
+  <li><a href="#centering-variables" id="toc-centering-variables" class="nav-link" data-scroll-target="#centering-variables">Centering variables</a></li>
+  <li><a href="#create-quadratic-polynomial-term" id="toc-create-quadratic-polynomial-term" class="nav-link" data-scroll-target="#create-quadratic-polynomial-term">Create quadratic polynomial term</a></li>
+  <li><a href="#itemscale-adjustments" id="toc-itemscale-adjustments" class="nav-link" data-scroll-target="#itemscale-adjustments">Item/scale adjustments</a>
+  <ul class="collapse">
+  <li><a href="#sip-ad" id="toc-sip-ad" class="nav-link" data-scroll-target="#sip-ad">SIP-AD</a></li>
+  <li><a href="#sidas" id="toc-sidas" class="nav-link" data-scroll-target="#sidas">SIDAS</a></li>
+  <li><a href="#missing" id="toc-missing" class="nav-link" data-scroll-target="#missing">Missing</a></li>
+  </ul></li>
+  <li><a href="#covariates" id="toc-covariates" class="nav-link" data-scroll-target="#covariates">Covariates</a></li>
+  <li><a href="#descriptives-missing-data" id="toc-descriptives-missing-data" class="nav-link" data-scroll-target="#descriptives-missing-data">Descriptives + missing data</a></li>
+  <li><a href="#scale-reliability" id="toc-scale-reliability" class="nav-link" data-scroll-target="#scale-reliability">Scale reliability</a>
+  <ul class="collapse">
+  <li><a href="#audit" id="toc-audit" class="nav-link" data-scroll-target="#audit">AUDIT</a></li>
+  <li><a href="#sip-ad-1" id="toc-sip-ad-1" class="nav-link" data-scroll-target="#sip-ad-1">SIP-AD</a></li>
+  <li><a href="#hamd" id="toc-hamd" class="nav-link" data-scroll-target="#hamd">HAMD</a></li>
+  <li><a href="#bai" id="toc-bai" class="nav-link" data-scroll-target="#bai">BAI</a></li>
+  <li><a href="#sidas-continuous" id="toc-sidas-continuous" class="nav-link" data-scroll-target="#sidas-continuous">SIDAS (continuous)</a></li>
+  <li><a href="#ihs" id="toc-ihs" class="nav-link" data-scroll-target="#ihs">IHS</a></li>
+  <li><a href="#rs" id="toc-rs" class="nav-link" data-scroll-target="#rs">RS</a></li>
+  <li><a href="#concealment" id="toc-concealment" class="nav-link" data-scroll-target="#concealment">Concealment</a></li>
+  <li><a href="#identity-affirmation" id="toc-identity-affirmation" class="nav-link" data-scroll-target="#identity-affirmation">Identity affirmation</a></li>
+  </ul></li>
+  <li><a href="#overall-histograms" id="toc-overall-histograms" class="nav-link" data-scroll-target="#overall-histograms">Overall histograms</a></li>
+  <li><a href="#change-trajectories" id="toc-change-trajectories" class="nav-link" data-scroll-target="#change-trajectories">Change trajectories</a>
+  <ul class="collapse">
+  <li><a href="#individual-plots" id="toc-individual-plots" class="nav-link" data-scroll-target="#individual-plots">Individual plots</a>
+  <ul class="collapse">
+  <li><a href="#spaghetti-plots" id="toc-spaghetti-plots" class="nav-link" data-scroll-target="#spaghetti-plots">Spaghetti plots</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#scatterplots" id="toc-scatterplots" class="nav-link" data-scroll-target="#scatterplots">Scatterplots</a></li>
+  <li><a href="#correlations" id="toc-correlations" class="nav-link" data-scroll-target="#correlations">Correlations</a></li>
+  <li><a href="#iccs" id="toc-iccs" class="nav-link" data-scroll-target="#iccs">ICCs</a></li>
+  <li><a href="#demographics" id="toc-demographics" class="nav-link" data-scroll-target="#demographics">Demographics</a></li>
+  <li><a href="#save-data-file" id="toc-save-data-file" class="nav-link" data-scroll-target="#save-data-file">Save data file</a></li>
+  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a>
+  <ul class="collapse">
+  <li><a href="#correlation-matrix" id="toc-correlation-matrix" class="nav-link" data-scroll-target="#correlation-matrix">Correlation matrix</a></li>
+  <li><a href="#descriptives" id="toc-descriptives" class="nav-link" data-scroll-target="#descriptives">Descriptives</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Data cleaning, descriptives, reliability, histograms, correlations</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>TJ Sullivan </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="load-packages-and-data" class="level1">
+<h1>Load packages and data</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sjmisc)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(easystats)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(psych)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Load apps dataset, which contains LADI coding information and relevant variables</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> <span class="fu">read_spss</span>(<span class="st">"data/LGBTQ-APPS 2.24.22 KB.sav"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Load full dataset to use for reporting demographics, calculating reliability, and pulling variables not included in prior apps dataset when initially requested.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>full <span class="ot">&lt;-</span> <span class="fu">read_spss</span>(<span class="st">"data/ESTEEM All Data Merged_updated 3.2.21_with_comorbidity_RB.sav"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reduce full dataset to the n=57 people who had coded data for this study.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="fu">select</span>(apps, ParticipantID)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>full <span class="ot">&lt;-</span> id <span class="sc">|&gt;</span> <span class="fu">left_join</span>(full, <span class="at">by =</span> <span class="st">"ParticipantID"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Merge variables not included in the apps dataset (this includes HIV risk transmission behavior from TLFB, AUDIT, SIDAS, and SIP-AD).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># isolate variables to merge</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>merge <span class="ot">&lt;-</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  full <span class="sc">|&gt;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, Assessment, Sx_CASriskacts, Sx_totalacts_sum, SIP_sum, AUDIT_sum, SIDAS_sum) <span class="sc">|&gt;</span> </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># change Assessment variable to character to match dataset; add in missing variables for BL </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Assessment =</span> <span class="fu">case_when</span>(Assessment <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="st">"BL"</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"4M"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">"8M"</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> <span class="st">"12M"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">id_cols =</span> ParticipantID,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_from =</span> Assessment,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(<span class="sc">-</span>ParticipantID, <span class="sc">-</span>Assessment),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_sep =</span> <span class="st">"."</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># merge</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> <span class="fu">left_join</span>(apps, merge, <span class="at">by =</span> <span class="st">"ParticipantID"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create a variable for whether pt was engaged in CMHT, general MH services, or medication at BL - should be 0 for everyone</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CMHT.BL =</span> <span class="dv">0</span>, </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">MHgen.BL =</span> <span class="dv">0</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Medication.BL =</span> <span class="dv">0</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(merge)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-restructuring" class="level1">
+<h1>Data restructuring</h1>
+<p>First we need to re-structure the dataset to long format. One dataframe will contain the outcome/follow-up assessment data, one will contain alliance data. This is done because there are differing numbers of time points - 4 assessments (BL, 4MFU, 8MFU, 12MFU) and 10 sessions.</p>
+<p>Because we are interested in controlling for the therapy alliance in analyses, we need to separate out the alliance data and pull the alliance scores for the sessions where the LGBTQ-APPS was coded. This code will do that and merge it with the main dataset before restructuring.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> <span class="fu">mutate</span>(apps, <span class="at">WAI_sum_missing =</span> <span class="fu">rowSums</span>(<span class="fu">is.na</span>(<span class="fu">across</span>(WAI_P_Sum.Session1<span class="sc">:</span>WAI_P_Sum.Session10))),</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">WAI_sum_missing =</span> <span class="fu">recode_factor</span>(<span class="fu">if_else</span>(WAI_sum_missing <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>), <span class="st">`</span><span class="at">0</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"No missing data for any session"</span>, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Missing data for at least 1 session"</span>)) <span class="co"># create a variable denoting whether participant has complete WAI data or is missing at least one session</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>apps_alliance <span class="ot">&lt;-</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  apps <span class="sc">|&gt;</span> </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, Early_Session, Mid_Session, WAI_P_Sum.Session1<span class="sc">:</span>WAI_P_Sum.Session10) <span class="sc">|&gt;</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="sc">-</span>ParticipantID, <span class="sc">-</span>Early_Session, <span class="sc">-</span>Mid_Session),</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"Session"</span>), </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_sep =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">.Session"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># rename alliance variable </span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">WAI.Total =</span> WAI_P_Sum)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>early <span class="ot">&lt;-</span> apps_alliance <span class="sc">|&gt;</span> <span class="fu">select</span>(ParticipantID, Session, Early_Session, Mid_Session, WAI.Total) <span class="sc">|&gt;</span> </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># match the alliance score for the specific session that was coded </span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">if_else</span>(Early_Session <span class="sc">==</span> <span class="dv">3</span>, Session <span class="sc">==</span> <span class="dv">3</span>, Session <span class="sc">==</span> <span class="dv">2</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, <span class="at">WAI_early =</span> WAI.Total)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>mid <span class="ot">&lt;-</span> apps_alliance <span class="sc">|&gt;</span> <span class="fu">select</span>(ParticipantID, Session, Early_Session, Mid_Session, WAI.Total) <span class="sc">|&gt;</span> </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># match the alliance score for the specific session that was coded </span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">if_else</span>(Mid_Session <span class="sc">==</span> <span class="dv">5</span>, Session <span class="sc">==</span> <span class="dv">5</span>, Session <span class="sc">==</span> <span class="dv">6</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, <span class="at">WAI_mid =</span> WAI.Total)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co"># join the isolated alliance scores with the dataset</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> <span class="fu">left_join</span>(apps, early, <span class="at">by =</span> <span class="st">"ParticipantID"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(mid, <span class="at">by =</span> <span class="st">"ParticipantID"</span>) </span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co"># create average across the two sessions</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  sjmisc<span class="sc">::</span><span class="fu">row_means</span>(WAI_early<span class="sc">:</span>WAI_mid, <span class="at">n =</span> <span class="fl">0.5</span>, <span class="at">var =</span> <span class="st">"WAI_avg"</span>)</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(early)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(mid)</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(apps_alliance)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Second, separate out outcome data to separate dataframe &amp; pivot to long format.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select out variables for outcome analyses</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, TherapistID, Site, CMHT.BL, CMHT<span class="fl">.4</span>M<span class="sc">:</span>CMHT<span class="fl">.12</span>M, MHgen.BL, MHgen<span class="fl">.4</span>M<span class="sc">:</span>MHgen<span class="fl">.12</span>M, Medication.BL, Medication<span class="fl">.4</span>M<span class="sc">:</span>Medication<span class="fl">.12</span>M, Early_Affirm, Mid_Affirm, Average_Affirm, HAMD_sum.BL<span class="sc">:</span>LGBIS_identaffirm_missing, Sx_CASriskacts.BL<span class="sc">:</span>SIDAS_sum<span class="fl">.12</span>M, WAI_early, WAI_mid, WAI_avg) <span class="sc">|&gt;</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># pivot to long format</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="sc">-</span>ParticipantID, <span class="sc">-</span>Site, <span class="sc">-</span>TherapistID, <span class="sc">-</span>Early_Affirm, <span class="sc">-</span>Mid_Affirm, <span class="sc">-</span>Average_Affirm, <span class="sc">-</span>HAMD_missing, <span class="sc">-</span>BAI_missing, <span class="sc">-</span>RS_missing, <span class="sc">-</span>IHS_missing, <span class="sc">-</span>SOC_missing, <span class="sc">-</span>LGBIS_identaffirm_missing, <span class="sc">-</span>WAI_early, <span class="sc">-</span>WAI_mid, <span class="sc">-</span>WAI_avg),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">".value"</span>, <span class="st">"Assessment"</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_sep =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">."</span>) <span class="sc">|&gt;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># clean up assessment variable to be numeric </span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Assessment =</span> <span class="fu">case_when</span>(Assessment <span class="sc">==</span> <span class="st">"BL"</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="st">"4M"</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="st">"8M"</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                                Assessment <span class="sc">==</span> <span class="st">"12M"</span> <span class="sc">~</span> <span class="dv">3</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">relocate</span>(Assessment, <span class="at">.after =</span> TherapistID)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Thus <code>apps_outcome</code> is the data frame for all analyses down below.</p>
+</section>
+<section id="centering-variables" class="level1">
+<h1>Centering variables</h1>
+<p>For outcome analyses, we can have assessment be centered around the post-treatment outcome scores. This would mean that the intercept would reflect the mean outcome variable score post-treatment/at 4MFU. The LADI predictor variable would then signify the association b/t affirmative technique and post-treatment outcome scores while accounting for change in outcomes over the 12-month follow-up period.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> <span class="fu">mutate</span>(apps_outcome,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Assessment_c =</span> Assessment <span class="sc">-</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>For all analyses, we will grand-mean center the LGBTQ-APPS variable. We’ll also center the average alliance score since we’ll include that as a covariate.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> <span class="fu">mutate</span>(apps_outcome,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Average_Affirm_c =</span> Average_Affirm <span class="sc">-</span> <span class="fu">mean</span>(Average_Affirm),</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">WAI_avg_c =</span> WAI_avg <span class="sc">-</span> <span class="fu">mean</span>(WAI_avg),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">WAI_early_c =</span> WAI_early <span class="sc">-</span> <span class="fu">mean</span>(WAI_early),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">WAI_mid_c =</span> WAI_mid <span class="sc">-</span> <span class="fu">mean</span>(WAI_mid),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Sx_totalacts_sum_c =</span> Sx_totalacts_sum <span class="sc">-</span> <span class="fu">mean</span>(Sx_totalacts_sum, <span class="at">na.rm =</span> T) </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                       )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="create-quadratic-polynomial-term" class="level1">
+<h1>Create quadratic polynomial term</h1>
+<p>This will allow us to estimate a non-linear change trajectory, which is pretty common in psychotherapy outcomes. Here, we’ll consider just quadratic because cubic is not very tenable with the small sample size that we have - it’s likely to overfit to the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> <span class="fu">mutate</span>(apps_outcome,</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Assessment_c_quad =</span> Assessment_c <span class="sc">*</span> Assessment_c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="itemscale-adjustments" class="level1">
+<h1>Item/scale adjustments</h1>
+<section id="sip-ad" class="level2">
+<h2 class="anchored" data-anchor-id="sip-ad">SIP-AD</h2>
+<p>For all items, if &lt;50% of items were missing, responses were imputed with the mean of all non-missing item. For the SIP-AD, this measure is a count (yes/no of whether or not a specific consequence was endorsed). For participant 3352’s 12MFU, SIP item 4 was imputed as 0.36. Instead, we modified this value to be the median value among the non-missing responses so we could preserve the dichotomous nature of scale responses for the SIP-AD. For this participant, this median value for the SIP-AD at 12MFU is 0. Thus, this item was changed and 3352’s SIP_sum score for the 12MFU is changed from 5.36 to 5 to reflect this change.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>full <span class="ot">&lt;-</span> full <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SIP_4 =</span> <span class="fu">ifelse</span>((ParticipantID <span class="sc">==</span> <span class="dv">3352</span> <span class="sc">&amp;</span> Assessment <span class="sc">==</span> <span class="dv">3</span>), <span class="dv">0</span>, SIP_4),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">SIP_sum =</span> <span class="fu">ifelse</span>((ParticipantID <span class="sc">==</span> <span class="dv">3352</span> <span class="sc">&amp;</span> Assessment <span class="sc">==</span> <span class="dv">3</span>), <span class="dv">5</span>, SIP_sum))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SIP_sum =</span> <span class="fu">ifelse</span>((ParticipantID <span class="sc">==</span> <span class="dv">3352</span> <span class="sc">&amp;</span> Assessment <span class="sc">==</span> <span class="dv">3</span>), <span class="dv">5</span>, SIP_sum))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="sidas" class="level2">
+<h2 class="anchored" data-anchor-id="sidas">SIDAS</h2>
+<p>Given the potential for SIDAS scores to be highly skewed due to low prevalence of suicidality in this sample, we’ll also create a variable (0 = no, 1 = yes) as to whether or not suicidality was endorsed at that wave.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SIDAS_yn =</span> <span class="fu">ifelse</span>(SIDAS_sum <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="missing" class="level2">
+<h2 class="anchored" data-anchor-id="missing">Missing</h2>
+<p>We noticed that there were a couple of participants that scored a 999 (SPSS missing value) instead of <code>NA</code> (R missing value) on the <code>SIP_sum</code> and <code>Sx_totalacts_sum</code> measure. This code will recode those values as missing.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">SIP_sum =</span> <span class="fu">ifelse</span>(SIP_sum <span class="sc">==</span> <span class="dv">999</span>, <span class="cn">NA</span>, SIP_sum),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">Sx_totalacts_sum =</span> <span class="fu">ifelse</span>(Sx_totalacts_sum <span class="sc">==</span> <span class="dv">999</span>, <span class="cn">NA</span>, Sx_totalacts_sum))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="covariates" class="level1">
+<h1>Covariates</h1>
+<p>Recode to 0/1 structure for models.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">CMHT =</span> <span class="fu">recode_factor</span>(<span class="fu">as.factor</span>(CMHT), <span class="st">`</span><span class="at">0</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"No or no data"</span>, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Continued"</span>),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">MHgen =</span> <span class="fu">recode_factor</span>(<span class="fu">as.factor</span>(MHgen), <span class="st">`</span><span class="at">0</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"No or no data"</span>, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Utilized"</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">Medication =</span> <span class="fu">recode_factor</span>(<span class="fu">as.factor</span>(Medication), <span class="st">`</span><span class="at">0</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"No or no data"</span>, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Taken"</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">Site =</span> <span class="fu">recode_factor</span>(<span class="fu">as.factor</span>((Site <span class="sc">-</span> <span class="dv">1</span>)), <span class="st">`</span><span class="at">0</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"NYC"</span>, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Miami"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Continued CMHT treatment:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># overall</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span> <span class="fu">frq</span>(CMHT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CMHT &lt;categorical&gt; 
+# total N=228 valid N=228 mean=1.05 sd=0.22
+
+Value         |   N | Raw % | Valid % | Cum. %
+----------------------------------------------
+No or no data | 216 | 94.74 |   94.74 |  94.74
+Continued     |  12 |  5.26 |    5.26 | 100.00
+&lt;NA&gt;          |   0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># by time point</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span>  <span class="fu">group_by</span>(Assessment) <span class="sc">|&gt;</span>  <span class="fu">frq</span>(CMHT)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CMHT &lt;categorical&gt; 
+# grouped by: 0
+# total N=57 valid N=57 mean=1.00 sd=0.00
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 57 |   100 |     100 |    100
+Continued     |  0 |     0 |       0 |    100
+&lt;NA&gt;          |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+CMHT &lt;categorical&gt; 
+# grouped by: 1
+# total N=57 valid N=57 mean=1.02 sd=0.13
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 56 | 98.25 |   98.25 |  98.25
+Continued     |  1 |  1.75 |    1.75 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+CMHT &lt;categorical&gt; 
+# grouped by: 2
+# total N=57 valid N=57 mean=1.09 sd=0.29
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 52 | 91.23 |   91.23 |  91.23
+Continued     |  5 |  8.77 |    8.77 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+CMHT &lt;categorical&gt; 
+# grouped by: 3
+# total N=57 valid N=57 mean=1.11 sd=0.31
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 51 | 89.47 |   89.47 |  89.47
+Continued     |  6 | 10.53 |   10.53 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+</div>
+<p>MH treatment elsewhere:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># overall</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span> <span class="fu">frq</span>(MHgen)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>MHgen &lt;categorical&gt; 
+# total N=228 valid N=228 mean=1.14 sd=0.34
+
+Value         |   N | Raw % | Valid % | Cum. %
+----------------------------------------------
+No or no data | 197 | 86.40 |   86.40 |  86.40
+Utilized      |  31 | 13.60 |   13.60 | 100.00
+&lt;NA&gt;          |   0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># by time point</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span>  <span class="fu">group_by</span>(Assessment) <span class="sc">|&gt;</span>  <span class="fu">frq</span>(MHgen)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>MHgen &lt;categorical&gt; 
+# grouped by: 0
+# total N=57 valid N=57 mean=1.00 sd=0.00
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 57 |   100 |     100 |    100
+Utilized      |  0 |     0 |       0 |    100
+&lt;NA&gt;          |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+MHgen &lt;categorical&gt; 
+# grouped by: 1
+# total N=57 valid N=57 mean=1.11 sd=0.31
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 51 | 89.47 |   89.47 |  89.47
+Utilized      |  6 | 10.53 |   10.53 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+MHgen &lt;categorical&gt; 
+# grouped by: 2
+# total N=57 valid N=57 mean=1.21 sd=0.41
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 45 | 78.95 |   78.95 |  78.95
+Utilized      | 12 | 21.05 |   21.05 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+MHgen &lt;categorical&gt; 
+# grouped by: 3
+# total N=57 valid N=57 mean=1.23 sd=0.42
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 44 | 77.19 |   77.19 |  77.19
+Utilized      | 13 | 22.81 |   22.81 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+</div>
+<p>Medication:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># overall</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span> <span class="fu">frq</span>(Medication)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Medication &lt;categorical&gt; 
+# total N=228 valid N=228 mean=1.12 sd=0.32
+
+Value         |   N | Raw % | Valid % | Cum. %
+----------------------------------------------
+No or no data | 201 | 88.16 |   88.16 |  88.16
+Taken         |  27 | 11.84 |   11.84 | 100.00
+&lt;NA&gt;          |   0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># by time point</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span>  <span class="fu">group_by</span>(Assessment) <span class="sc">|&gt;</span>  <span class="fu">frq</span>(Medication)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Medication &lt;categorical&gt; 
+# grouped by: 0
+# total N=57 valid N=57 mean=1.00 sd=0.00
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 57 |   100 |     100 |    100
+Taken         |  0 |     0 |       0 |    100
+&lt;NA&gt;          |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Medication &lt;categorical&gt; 
+# grouped by: 1
+# total N=57 valid N=57 mean=1.14 sd=0.35
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 49 | 85.96 |   85.96 |  85.96
+Taken         |  8 | 14.04 |   14.04 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Medication &lt;categorical&gt; 
+# grouped by: 2
+# total N=57 valid N=57 mean=1.18 sd=0.38
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 47 | 82.46 |   82.46 |  82.46
+Taken         | 10 | 17.54 |   17.54 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Medication &lt;categorical&gt; 
+# grouped by: 3
+# total N=57 valid N=57 mean=1.16 sd=0.37
+
+Value         |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+No or no data | 48 | 84.21 |   84.21 |  84.21
+Taken         |  9 | 15.79 |   15.79 | 100.00
+&lt;NA&gt;          |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="descriptives-missing-data" class="level1">
+<h1>Descriptives + missing data</h1>
+<p>Here is code that will pull descriptive information (including % missing data) for all of the variables of interest - this averages across all time points.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span>  </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm, WAI_avg) <span class="sc">|&gt;</span>  </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="fu">list</span>(<span class="at">mean =</span> <span class="sc">~</span> <span class="fu">mean</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">median =</span> <span class="sc">~</span> <span class="fu">median</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">sd =</span> <span class="sc">~</span> <span class="fu">sd</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">min =</span> <span class="sc">~</span> <span class="fu">min</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">max =</span> <span class="sc">~</span> <span class="fu">max</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">na_n =</span> <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.x)),</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">na_perc =</span> <span class="sc">~</span> (<span class="fu">sum</span>(<span class="fu">is.na</span>(.x) <span class="sc">/</span> <span class="fu">n_distinct</span>(apps_outcome))) <span class="sc">*</span> <span class="dv">100</span>),</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.names =</span> <span class="st">"{.col}-{.fn}"</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">|&gt;</span>  </span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"ColNames"</span>, <span class="st">".value"</span>), </span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_sep =</span> <span class="st">"-"</span>,</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>               ) <span class="sc">|&gt;</span>  </span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">max =</span> <span class="fu">round</span>(max, <span class="at">digits =</span> <span class="dv">2</span>)) <span class="sc">|&gt;</span>  </span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(range, <span class="fu">c</span>(<span class="st">"min"</span>, <span class="st">"max"</span>), <span class="at">sep =</span> <span class="st">"-"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 14 × 7
+   ColNames               mean median     sd range    na_n na_perc
+   &lt;chr&gt;                 &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;int&gt;   &lt;dbl&gt;
+ 1 Sx_CASriskacts        4.47    2     6.41  0-45       11    4.82
+ 2 Sx_totalacts_sum     28.6    23    27.6   0-206      11    4.82
+ 3 AUDIT_sum             8.16    7     6.28  0-29       12    5.26
+ 4 SIP_sum               3.19    2     3.68  0-15       13    5.70
+ 5 HAMD_sum             12.3    12     6.66  0-32       11    4.82
+ 6 BAI_sum              18.8    18    11.4   0-55       11    4.82
+ 7 SIDAS_sum             2.48    0     5.70  0-39       11    4.82
+ 8 SIDAS_yn              0.300   0     0.459 0-1        11    4.82
+ 9 IHS_mean              1.66    1.44  0.628 1-3.56     16    7.02
+10 RS_mean              12.2    11.2   7.28  1-36       12    5.26
+11 SOC_concealment_mean  1.79    1.8   0.687 1-3.4      12    5.26
+12 LGBIS_identaffirm     4.56    4.67  1.28  1-6        13    5.70
+13 Average_Affirm        1.38    1.25  1.20  0-4.75      0    0   
+14 WAI_avg              70.4    73    10.9   31.5-84     0    0   </code></pre>
+</div>
+</div>
+<p>Then do this by the specific time point, excluding <code>Average_Affirm</code> and <code>WAI_avg</code> since these variables did not differ by time point:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span>  </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Assessment, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) <span class="sc">|&gt;</span>  </span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Assessment) <span class="sc">|&gt;</span> </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="fu">list</span>(<span class="at">mean =</span> <span class="sc">~</span> <span class="fu">mean</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">median =</span> <span class="sc">~</span> <span class="fu">median</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">sd =</span> <span class="sc">~</span> <span class="fu">sd</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">min =</span> <span class="sc">~</span> <span class="fu">min</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">max =</span> <span class="sc">~</span> <span class="fu">max</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">na_n =</span> <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.x)),</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">na_perc =</span> <span class="sc">~</span> (<span class="fu">sum</span>(<span class="fu">is.na</span>(.x) <span class="sc">/</span> <span class="fu">n_distinct</span>(apps_outcome))) <span class="sc">*</span> <span class="dv">100</span>),</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.names =</span> <span class="st">"{.col}-{.fn}"</span>)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="sc">-</span>Assessment,</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"ColNames"</span>, <span class="st">".value"</span>), </span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_sep =</span> <span class="st">"-"</span>,</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>               ) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">max =</span> <span class="fu">round</span>(max, <span class="at">digits =</span> <span class="dv">2</span>),</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">min =</span> <span class="fu">round</span>(min, <span class="at">digits =</span> <span class="dv">2</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(range, <span class="fu">c</span>(<span class="st">"min"</span>, <span class="st">"max"</span>), <span class="at">sep =</span> <span class="st">"-"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ColNames)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 48 × 8
+   Assessment ColNames   mean median    sd range  na_n na_perc
+        &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;int&gt;   &lt;dbl&gt;
+ 1          0 AUDIT_sum  9.49      8  7.27 0-29      0    0   
+ 2          1 AUDIT_sum  8.13      7  6.13 0-23      4    1.75
+ 3          2 AUDIT_sum  8.23      8  5.77 0-24      4    1.75
+ 4          3 AUDIT_sum  6.70      6  5.57 0-22      4    1.75
+ 5          0 BAI_sum   23.4      24 11.1  2-47      0    0   
+ 6          1 BAI_sum   17.7      18 10.1  0-45      3    1.32
+ 7          2 BAI_sum   16.7      15 10.5  0-46      4    1.75
+ 8          3 BAI_sum   17.1      14 12.6  0-55      4    1.75
+ 9          0 HAMD_sum  15.6      16  6.28 3-32      0    0   
+10          1 HAMD_sum  10.8       9  6.60 1-28      3    1.32
+# ℹ 38 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="scale-reliability" class="level1">
+<h1>Scale reliability</h1>
+<p>For reporting purposes, we’re going to pull Cronbach’s alpha overall and for each time point. These functions will allow us to do that easily for each time point.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a function to just get the raw Cronbach's alpha from the psych package for each measure (aggregated across time point)</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>get_raw_alpha <span class="ot">&lt;-</span> <span class="cf">function</span>(data, measure_cols) {</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  alpha <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>({{measure_cols}}) <span class="sc">%&gt;%</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">alpha</span>(<span class="at">warnings =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  raw_alpha <span class="ot">&lt;-</span> alpha<span class="sc">$</span>total<span class="sc">$</span>raw_alpha</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(raw_alpha)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a function to calculate Cronbach's alpha for each assessment time</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>calculate_alpha_map <span class="ot">&lt;-</span> <span class="cf">function</span>(data, assessment_col, measure_cols) {</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get unique assessment times</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  assessment_times <span class="ot">&lt;-</span> <span class="fu">unique</span>(data[[assessment_col]])</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Define a function to calculate alpha for a specific assessment time</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  alpha_for_time <span class="ot">&lt;-</span> <span class="cf">function</span>(assessment_time) {</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>    data_filtered <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!!</span><span class="fu">sym</span>(assessment_col) <span class="sc">==</span> assessment_time)</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>    alpha_result <span class="ot">&lt;-</span> data_filtered <span class="sc">%&gt;%</span> <span class="fu">select</span>({{measure_cols}}) <span class="sc">%&gt;%</span> <span class="fu">alpha</span>(<span class="at">warnings =</span> F)</span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(alpha_result<span class="sc">$</span>total<span class="sc">$</span>raw_alpha)</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Use map to apply the alpha function to each assessment time</span></span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>  alpha_results <span class="ot">&lt;-</span> <span class="fu">map</span>(assessment_times, alpha_for_time)</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(alpha_results) <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">"Assessment"</span>, assessment_times)</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(alpha_results)</span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="audit" class="level2">
+<h2 class="anchored" data-anchor-id="audit">AUDIT</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, AUDIT_1<span class="sc">:</span>AUDIT_9)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8568083</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, AUDIT_1<span class="sc">:</span>AUDIT_9) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.8660913
+
+$`Assessment 1`
+[1] 0.8475727
+
+$`Assessment 2`
+[1] 0.8367354
+
+$`Assessment 3`
+[1] 0.8510599</code></pre>
+</div>
+</div>
+</section>
+<section id="sip-ad-1" class="level2">
+<h2 class="anchored" data-anchor-id="sip-ad-1">SIP-AD</h2>
+<p>Note this will give you the KR-20 coefficient when the <code>alpha</code> function is run with dichotomous items.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, SIP_1<span class="sc">:</span>SIP_15)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8897054</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, SIP_1<span class="sc">:</span>SIP_15) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.9060917
+
+$`Assessment 1`
+[1] 0.8807223
+
+$`Assessment 2`
+[1] 0.8937622
+
+$`Assessment 3`
+[1] 0.8452679</code></pre>
+</div>
+</div>
+</section>
+<section id="hamd" class="level2">
+<h2 class="anchored" data-anchor-id="hamd">HAMD</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, HAMD_1<span class="sc">:</span>HAMD_17)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.7993866</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, HAMD_1<span class="sc">:</span>HAMD_17) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.7376662
+
+$`Assessment 1`
+[1] 0.8107525
+
+$`Assessment 2`
+[1] 0.7873542
+
+$`Assessment 3`
+[1] 0.8127561</code></pre>
+</div>
+</div>
+</section>
+<section id="bai" class="level2">
+<h2 class="anchored" data-anchor-id="bai">BAI</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, BAI_1<span class="sc">:</span>BAI_21)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9148405</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, BAI_1<span class="sc">:</span>BAI_21) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.8930645
+
+$`Assessment 1`
+[1] 0.8945386
+
+$`Assessment 2`
+[1] 0.9039994
+
+$`Assessment 3`
+[1] 0.9401277</code></pre>
+</div>
+</div>
+</section>
+<section id="sidas-continuous" class="level2">
+<h2 class="anchored" data-anchor-id="sidas-continuous">SIDAS (continuous)</h2>
+<p>Note for the SIDAS the missing values were not coded as <code>NA</code> for item 2 so those need to be recoded.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>full <span class="ot">&lt;-</span> full <span class="sc">|&gt;</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">SIDAS_2r =</span> <span class="fu">ifelse</span>(SIDAS_2r <span class="sc">==</span> <span class="dv">999</span>, <span class="cn">NA</span>, SIDAS_2r))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then calculate reliability:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, <span class="fu">c</span>(SIDAS_1, SIDAS_2r, SIDAS_3, SIDAS_4, SIDAS_5))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8967987</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, <span class="fu">c</span>(SIDAS_2r, SIDAS_3, SIDAS_4, SIDAS_5))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.7785711
+
+$`Assessment 1`
+[1] 0.8251342
+
+$`Assessment 2`
+[1] 0.9417549
+
+$`Assessment 3`
+[1] 0.8144857</code></pre>
+</div>
+</div>
+</section>
+<section id="ihs" class="level2">
+<h2 class="anchored" data-anchor-id="ihs">IHS</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, IHS_1<span class="sc">:</span>IHS_9)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8817837</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, IHS_1<span class="sc">:</span>IHS_9) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.8806606
+
+$`Assessment 1`
+[1] 0.8595452
+
+$`Assessment 2`
+[1] 0.8890164
+
+$`Assessment 3`
+[1] 0.8946053</code></pre>
+</div>
+</div>
+</section>
+<section id="rs" class="level2">
+<h2 class="anchored" data-anchor-id="rs">RS</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, RS_1<span class="sc">:</span>RS_14)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9173433</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, RS_1<span class="sc">:</span>RS_14) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.914077
+
+$`Assessment 1`
+[1] 0.8867508
+
+$`Assessment 2`
+[1] 0.9313299
+
+$`Assessment 3`
+[1] 0.9207489</code></pre>
+</div>
+</div>
+</section>
+<section id="concealment" class="level2">
+<h2 class="anchored" data-anchor-id="concealment">Concealment</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, <span class="fu">c</span>(SOC_FamilyR, SOC_GLBFriendsR, SOC_Str8FriendsR, SOC_CoworkersR, SOC_HCPR))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.7853371</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, <span class="fu">c</span>(SOC_FamilyR, SOC_GLBFriendsR, SOC_Str8FriendsR, SOC_CoworkersR, SOC_HCPR)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.7929316
+
+$`Assessment 1`
+[1] 0.8101648
+
+$`Assessment 2`
+[1] 0.8328684
+
+$`Assessment 3`
+[1] 0.8122468</code></pre>
+</div>
+</div>
+</section>
+<section id="identity-affirmation" class="level2">
+<h2 class="anchored" data-anchor-id="identity-affirmation">Identity affirmation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_raw_alpha</span>(full, <span class="fu">c</span>(LGBIS_6, LGBIS_13, LGBIS_26))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9224737</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">calculate_alpha_map</span>(full, <span class="st">"Assessment"</span>, <span class="fu">c</span>(LGBIS_6, LGBIS_13, LGBIS_26)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`Assessment 0`
+[1] 0.954971
+
+$`Assessment 1`
+[1] 0.9549971
+
+$`Assessment 2`
+[1] 0.8878999
+
+$`Assessment 3`
+[1] 0.8804268</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="overall-histograms" class="level1">
+<h1>Overall histograms</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>plot_outcomes_sum <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>)</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>outcome_vars_sum <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Sx_CASriskacts"</span>, <span class="st">"AUDIT_sum"</span>, <span class="st">"SIP_sum"</span>, <span class="st">"HAMD_sum"</span>, <span class="st">"BAI_sum"</span>, <span class="st">"SIDAS_sum"</span>, <span class="st">"SIDAS_yn"</span>)</span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_outcomes_sum</span>(apps_outcome, outcome_vars_sum)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>plot_outcomes_mean <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.3</span>)</span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>outcome_vars_mean <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"IHS_mean"</span>, <span class="st">"RS_mean"</span>, <span class="st">"SOC_concealment_mean"</span>, <span class="st">"LGBIS_identaffirm"</span>)</span>
+<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_outcomes_mean</span>(apps_outcome, outcome_vars_mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-10.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-24-11.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="change-trajectories" class="level1">
+<h1>Change trajectories</h1>
+<section id="individual-plots" class="level2">
+<h2 class="anchored" data-anchor-id="individual-plots">Individual plots</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>individ_trajs <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">|&gt;</span> </span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Assessment, <span class="at">y =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span> ParticipantID) </span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>outcome_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Sx_CASriskacts"</span>, <span class="st">"AUDIT_sum"</span>, <span class="st">"SIP_sum"</span>, <span class="st">"HAMD_sum"</span>, <span class="st">"BAI_sum"</span>, <span class="st">"SIDAS_sum"</span>, <span class="st">"IHS_mean"</span>, <span class="st">"RS_mean"</span>, <span class="st">"SOC_concealment_mean"</span>)</span>
+<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a><span class="fu">individ_trajs</span>(apps_outcome, outcome_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[8]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[9]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-25-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="spaghetti-plots" class="level3">
+<h3 class="anchored" data-anchor-id="spaghetti-plots">Spaghetti plots</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb92"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>spaghetti <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb92-3"><a href="#cb92-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb92-4"><a href="#cb92-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">|&gt;</span> </span>
+<span id="cb92-5"><a href="#cb92-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Assessment, <span class="at">y =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb92-6"><a href="#cb92-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="fu">aes</span>(<span class="at">group =</span> ParticipantID),</span>
+<span id="cb92-7"><a href="#cb92-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> F, <span class="at">size =</span> <span class="dv">1</span><span class="sc">/</span><span class="dv">16</span>) <span class="sc">+</span></span>
+<span id="cb92-8"><a href="#cb92-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> F, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"purple"</span>)</span>
+<span id="cb92-9"><a href="#cb92-9" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb92-10"><a href="#cb92-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb92-11"><a href="#cb92-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb92-12"><a href="#cb92-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb92-13"><a href="#cb92-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb92-14"><a href="#cb92-14" aria-hidden="true" tabindex="-1"></a><span class="fu">spaghetti</span>(apps_outcome, outcome_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[8]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[9]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-26-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="scatterplots" class="level1">
+<h1>Scatterplots</h1>
+<p>Overall scores:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb102"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="co">#apps_outcome |&gt; </span></span>
+<span id="cb102-2"><a href="#cb102-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  ggplot(aes(x = Average_Affirm, y = HAMD_sum)) + </span></span>
+<span id="cb102-3"><a href="#cb102-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_point() + </span></span>
+<span id="cb102-4"><a href="#cb102-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_jitter() +</span></span>
+<span id="cb102-5"><a href="#cb102-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  stat_smooth(method = "loess")</span></span>
+<span id="cb102-6"><a href="#cb102-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb102-7"><a href="#cb102-7" aria-hidden="true" tabindex="-1"></a>scatter <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb102-8"><a href="#cb102-8" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb102-9"><a href="#cb102-9" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb102-10"><a href="#cb102-10" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">|&gt;</span> </span>
+<span id="cb102-11"><a href="#cb102-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb102-12"><a href="#cb102-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb102-13"><a href="#cb102-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb102-14"><a href="#cb102-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb102-15"><a href="#cb102-15" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb102-16"><a href="#cb102-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb102-17"><a href="#cb102-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb102-18"><a href="#cb102-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb102-19"><a href="#cb102-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb102-20"><a href="#cb102-20" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter</span>(apps_outcome, outcome_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[8]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[9]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-27-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Just post-treatment scores to make this clearer. Note that we wrote over the function above.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb112"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a>scatter <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb112-2"><a href="#cb112-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb112-3"><a href="#cb112-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb112-4"><a href="#cb112-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">|&gt;</span> </span>
+<span id="cb112-5"><a href="#cb112-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb112-6"><a href="#cb112-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb112-7"><a href="#cb112-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb112-8"><a href="#cb112-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb112-9"><a href="#cb112-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb112-10"><a href="#cb112-10" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb112-11"><a href="#cb112-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb112-12"><a href="#cb112-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb112-13"><a href="#cb112-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb112-14"><a href="#cb112-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb112-15"><a href="#cb112-15" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter</span>(apps_outcome, outcome_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[8]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[9]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-28-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Inspection of the bivariate scatterplot shows that there are a couple of points at the far range of the LADI that might be influencing the bivariate relationship. Let’s identify what those scores are:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb122"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb122-2"><a href="#cb122-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">frq</span>(Average_Affirm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Average of early and mid-sessions LGBTQ-APPS Score (Average_Affirm) &lt;numeric&gt; 
+# total N=228 valid N=228 mean=1.38 sd=1.20
+
+Value |  N | Raw % | Valid % | Cum. %
+-------------------------------------
+ 0.00 | 44 | 19.30 |   19.30 |  19.30
+ 0.25 | 12 |  5.26 |    5.26 |  24.56
+ 0.50 | 16 |  7.02 |    7.02 |  31.58
+ 0.75 | 24 | 10.53 |   10.53 |  42.11
+ 1.00 | 16 |  7.02 |    7.02 |  49.12
+ 1.25 | 20 |  8.77 |    8.77 |  57.89
+ 1.50 | 12 |  5.26 |    5.26 |  63.16
+ 1.75 | 24 | 10.53 |   10.53 |  73.68
+ 2.25 | 16 |  7.02 |    7.02 |  80.70
+ 2.50 |  4 |  1.75 |    1.75 |  82.46
+ 2.75 |  4 |  1.75 |    1.75 |  84.21
+ 3.00 |  8 |  3.51 |    3.51 |  87.72
+ 3.25 |  8 |  3.51 |    3.51 |  91.23
+ 3.50 | 12 |  5.26 |    5.26 |  96.49
+ 4.00 |  4 |  1.75 |    1.75 |  98.25
+ 4.75 |  4 |  1.75 |    1.75 | 100.00
+ &lt;NA&gt; |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+</div>
+<p>Ok we see here that those are likely the one participant whose therapist scored scored a 4.75 on the LADI. Let’s exclude those to see how sensitive the plots are to those two points. Note that we wrote over the function above to make this easier.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb124"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a>scatter <span class="ot">&lt;-</span> <span class="cf">function</span>(data, outcome_vars) {</span>
+<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>  plots <span class="ot">&lt;-</span> <span class="fu">map</span>(outcome_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a>    var_sym <span class="ot">&lt;-</span> <span class="fu">sym</span>(var)</span>
+<span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a>    data <span class="sc">|&gt;</span> </span>
+<span id="cb124-5"><a href="#cb124-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Average_Affirm <span class="sc">!=</span> <span class="fl">4.75</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb124-7"><a href="#cb124-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> <span class="sc">!!</span>var_sym)) <span class="sc">+</span></span>
+<span id="cb124-8"><a href="#cb124-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb124-9"><a href="#cb124-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb124-10"><a href="#cb124-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb124-11"><a href="#cb124-11" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb124-12"><a href="#cb124-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb124-13"><a href="#cb124-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(plots)</span>
+<span id="cb124-14"><a href="#cb124-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb124-15"><a href="#cb124-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb124-16"><a href="#cb124-16" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter</span>(apps_outcome, outcome_vars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[2]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[3]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[4]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[5]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[6]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[7]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[8]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[9]]</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-30-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>By and large the scatterplots are similar with and without the excluded folks. However, the HAMD, IHS, and SOC are all measures that seem to change. Here is the before and after for each to showcase this.</p>
+<p>For HAMD:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb134"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb134-1"><a href="#cb134-1" aria-hidden="true" tabindex="-1"></a>hamd<span class="fl">.1</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb134-3"><a href="#cb134-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> HAMD_sum)) <span class="sc">+</span></span>
+<span id="cb134-4"><a href="#cb134-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb134-5"><a href="#cb134-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb134-6"><a href="#cb134-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb134-7"><a href="#cb134-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb134-8"><a href="#cb134-8" aria-hidden="true" tabindex="-1"></a>hamd<span class="fl">.2</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb134-9"><a href="#cb134-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb134-10"><a href="#cb134-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Average_Affirm <span class="sc">!=</span> <span class="fl">4.75</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb134-11"><a href="#cb134-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> HAMD_sum)) <span class="sc">+</span></span>
+<span id="cb134-12"><a href="#cb134-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb134-13"><a href="#cb134-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb134-14"><a href="#cb134-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb134-15"><a href="#cb134-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb134-16"><a href="#cb134-16" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(hamd<span class="fl">.1</span>, hamd<span class="fl">.2</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For IHS:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb135"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a>ihs<span class="fl">.1</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb135-3"><a href="#cb135-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> IHS_mean)) <span class="sc">+</span></span>
+<span id="cb135-4"><a href="#cb135-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb135-5"><a href="#cb135-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb135-6"><a href="#cb135-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb135-7"><a href="#cb135-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb135-8"><a href="#cb135-8" aria-hidden="true" tabindex="-1"></a>ihs<span class="fl">.2</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb135-9"><a href="#cb135-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb135-10"><a href="#cb135-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Average_Affirm <span class="sc">!=</span> <span class="fl">4.75</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb135-11"><a href="#cb135-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> IHS_mean)) <span class="sc">+</span></span>
+<span id="cb135-12"><a href="#cb135-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb135-13"><a href="#cb135-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb135-14"><a href="#cb135-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb135-15"><a href="#cb135-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb135-16"><a href="#cb135-16" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(ihs<span class="fl">.1</span>, ihs<span class="fl">.2</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For SOC:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb136"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a>soc<span class="fl">.1</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> SOC_concealment_mean)) <span class="sc">+</span></span>
+<span id="cb136-4"><a href="#cb136-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb136-5"><a href="#cb136-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb136-6"><a href="#cb136-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb136-7"><a href="#cb136-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb136-8"><a href="#cb136-8" aria-hidden="true" tabindex="-1"></a>soc<span class="fl">.2</span> <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb136-9"><a href="#cb136-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb136-10"><a href="#cb136-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(Average_Affirm <span class="sc">!=</span> <span class="fl">4.75</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb136-11"><a href="#cb136-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Average_Affirm, <span class="at">y =</span> SOC_concealment_mean)) <span class="sc">+</span></span>
+<span id="cb136-12"><a href="#cb136-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb136-13"><a href="#cb136-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb136-14"><a href="#cb136-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>)</span>
+<span id="cb136-15"><a href="#cb136-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb136-16"><a href="#cb136-16" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(soc<span class="fl">.1</span>, soc<span class="fl">.2</span>, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="analyses-basic_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="correlations" class="level1">
+<h1>Correlations</h1>
+<p>We’ll pull a correlation matrix for variables across all time points.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb137"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a>corr_results <span class="ot">&lt;-</span> <span class="fu">correlation</span>(<span class="at">data =</span> apps_outcome, </span>
+<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">select =</span> <span class="fu">c</span>(<span class="st">"Sx_CASriskacts"</span>, <span class="st">"Sx_totalacts_sum"</span>, <span class="st">"AUDIT_sum"</span>, <span class="st">"SIP_sum"</span>, <span class="st">"HAMD_sum"</span>, <span class="st">"BAI_sum"</span>, <span class="st">"SIDAS_sum"</span>, <span class="st">"IHS_mean"</span>, <span class="st">"RS_mean"</span>, <span class="st">"SOC_concealment_mean"</span>, <span class="st">"Average_Affirm"</span>, <span class="st">"WAI_avg"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb137-3"><a href="#cb137-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>(<span class="at">redundant =</span> T) </span>
+<span id="cb137-4"><a href="#cb137-4" aria-hidden="true" tabindex="-1"></a>corr_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Correlation Matrix (pearson-method)
+
+Parameter            | Sx_CASriskacts | Sx_totalacts_sum | AUDIT_sum | SIP_sum
+------------------------------------------------------------------------------
+Sx_CASriskacts       |                |          0.60*** |     0.22* |    0.20
+Sx_totalacts_sum     |        0.60*** |                  |      0.19 |    0.18
+AUDIT_sum            |          0.22* |             0.19 |           | 0.64***
+SIP_sum              |           0.20 |             0.18 |   0.64*** |        
+HAMD_sum             |           0.04 |             0.08 |      0.22 |  0.26**
+BAI_sum              |          -0.02 |             0.02 |     0.24* |  0.29**
+SIDAS_sum            |          -0.06 |             0.01 |      0.16 |    0.16
+IHS_mean             |           0.06 |             0.10 |    0.27** |    0.21
+RS_mean              |           0.04 |             0.16 |      0.18 |  0.27**
+SOC_concealment_mean |          -0.10 |             0.04 |     -0.07 |   -0.05
+Average_Affirm       |           0.13 |             0.08 |     -0.02 |   -0.12
+WAI_avg              |          -0.01 |             0.01 |      0.08 |    0.12
+
+Parameter            | HAMD_sum | BAI_sum | SIDAS_sum | IHS_mean | RS_mean
+--------------------------------------------------------------------------
+Sx_CASriskacts       |     0.04 |   -0.02 |     -0.06 |     0.06 |    0.04
+Sx_totalacts_sum     |     0.08 |    0.02 |      0.01 |     0.10 |    0.16
+AUDIT_sum            |     0.22 |   0.24* |      0.16 |   0.27** |    0.18
+SIP_sum              |   0.26** |  0.29** |      0.16 |     0.21 |  0.27**
+HAMD_sum             |          | 0.37*** |   0.29*** |    0.24* |  0.26**
+BAI_sum              |  0.37*** |         |      0.15 |     0.10 |   0.23*
+SIDAS_sum            |  0.29*** |    0.15 |           |     0.13 |    0.14
+IHS_mean             |    0.24* |    0.10 |      0.13 |          | 0.34***
+RS_mean              |   0.26** |   0.23* |      0.14 |  0.34*** |        
+SOC_concealment_mean |     0.02 |   -0.06 |      0.09 |  0.35*** |    0.18
+Average_Affirm       |    -0.12 |   -0.02 |     -0.15 |    -0.02 |   -0.01
+WAI_avg              |    -0.13 |   -0.09 |     -0.05 |    -0.14 |    0.09
+
+Parameter            | SOC_concealment_mean | Average_Affirm | WAI_avg
+----------------------------------------------------------------------
+Sx_CASriskacts       |                -0.10 |           0.13 |   -0.01
+Sx_totalacts_sum     |                 0.04 |           0.08 |    0.01
+AUDIT_sum            |                -0.07 |          -0.02 |    0.08
+SIP_sum              |                -0.05 |          -0.12 |    0.12
+HAMD_sum             |                 0.02 |          -0.12 |   -0.13
+BAI_sum              |                -0.06 |          -0.02 |   -0.09
+SIDAS_sum            |                 0.09 |          -0.15 |   -0.05
+IHS_mean             |              0.35*** |          -0.02 |   -0.14
+RS_mean              |                 0.18 |          -0.01 |    0.09
+SOC_concealment_mean |                      |        -0.27** |  -0.23*
+Average_Affirm       |              -0.27** |                |    0.15
+WAI_avg              |               -0.23* |           0.15 |        
+
+p-value adjustment method: Holm (1979)</code></pre>
+</div>
+</div>
+</section>
+<section id="iccs" class="level1">
+<h1>ICCs</h1>
+<p>We’ll calculate ICCs from a random intercepts MLM. First, we’ll evaluate nesting of timepoints within participants.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb139"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="co"># function to calculate ICCs for all outcomes</span></span>
+<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>icc_pt <span class="ot">&lt;-</span> apps_outcome <span class="sc">%&gt;%</span> </span>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, Assessment_c, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean),</span>
+<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"variable"</span>,</span>
+<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"outcome"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-7"><a href="#cb139-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variable =</span> <span class="fu">as.factor</span>(variable)) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-8"><a href="#cb139-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-9"><a href="#cb139-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_split</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb139-10"><a href="#cb139-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(<span class="at">.f =</span> <span class="cf">function</span>(df) {</span>
+<span id="cb139-11"><a href="#cb139-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lmer</span>(outcome <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ParticipantID), <span class="at">REML =</span> T, <span class="at">data =</span> df) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-12"><a href="#cb139-12" aria-hidden="true" tabindex="-1"></a>      broom.mixed<span class="sc">::</span><span class="fu">tidy</span>(<span class="at">effects =</span> <span class="st">"ran_pars"</span>, <span class="at">ddf.method =</span> <span class="st">"Kenward-Roger"</span>, <span class="at">scales =</span> <span class="st">"vcov"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-13"><a href="#cb139-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">add_column</span>(<span class="at">variable =</span> <span class="fu">unique</span>(df<span class="sc">$</span>variable), <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb139-14"><a href="#cb139-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(variable) <span class="sc">%&gt;%</span></span>
+<span id="cb139-15"><a href="#cb139-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarize</span>(<span class="at">pt_var =</span> <span class="fu">first</span>(estimate),</span>
+<span id="cb139-16"><a href="#cb139-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">total_var =</span> <span class="fu">sum</span>(estimate),</span>
+<span id="cb139-17"><a href="#cb139-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">icc =</span> pt_var<span class="sc">/</span>total_var)</span>
+<span id="cb139-18"><a href="#cb139-18" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb139-19"><a href="#cb139-19" aria-hidden="true" tabindex="-1"></a>icc_pt <span class="sc">%&gt;%</span> <span class="fu">select</span>(variable, icc) <span class="sc">%&gt;%</span> <span class="fu">mutate_if</span>(is.numeric, round, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 2
+   variable               icc
+   &lt;fct&gt;                &lt;dbl&gt;
+ 1 AUDIT_sum            0.721
+ 2 BAI_sum              0.506
+ 3 HAMD_sum             0.236
+ 4 IHS_mean             0.677
+ 5 RS_mean              0.624
+ 6 SIDAS_sum            0.328
+ 7 SIP_sum              0.63 
+ 8 SOC_concealment_mean 0.872
+ 9 Sx_CASriskacts       0.305
+10 Sx_totalacts_sum     0.232</code></pre>
+</div>
+</div>
+<p>Second, we’ll consider nesting of participants within therapists.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb141"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a>icc_ther <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span>  </span>
+<span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, TherapistID, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean),</span>
+<span id="cb141-4"><a href="#cb141-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"variable"</span>,</span>
+<span id="cb141-5"><a href="#cb141-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">"outcome"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb141-6"><a href="#cb141-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">variable =</span> <span class="fu">as.factor</span>(variable)) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-7"><a href="#cb141-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">|&gt;</span> </span>
+<span id="cb141-8"><a href="#cb141-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_split</span>() <span class="sc">|&gt;</span>  </span>
+<span id="cb141-9"><a href="#cb141-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(<span class="at">.f =</span> <span class="cf">function</span>(df) {</span>
+<span id="cb141-10"><a href="#cb141-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lmer</span>(outcome <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> ParticipantID) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> TherapistID), <span class="at">REML =</span> T, <span class="at">data =</span> df) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-11"><a href="#cb141-11" aria-hidden="true" tabindex="-1"></a>      broom.mixed<span class="sc">::</span><span class="fu">tidy</span>(<span class="at">effects =</span> <span class="st">"ran_pars"</span>, <span class="at">ddf.method =</span> <span class="st">"Kenward-Roger"</span>, <span class="at">scales =</span> <span class="st">"vcov"</span>) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-12"><a href="#cb141-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">add_column</span>(<span class="at">variable =</span> <span class="fu">unique</span>(df<span class="sc">$</span>variable), <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-13"><a href="#cb141-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(variable) <span class="sc">|&gt;</span>  </span>
+<span id="cb141-14"><a href="#cb141-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarize</span>(<span class="at">pt_var =</span> <span class="fu">first</span>(estimate),</span>
+<span id="cb141-15"><a href="#cb141-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">ther_var =</span> <span class="fu">nth</span>(estimate, <span class="dv">2</span>),</span>
+<span id="cb141-16"><a href="#cb141-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">total_var =</span> <span class="fu">sum</span>(estimate),</span>
+<span id="cb141-17"><a href="#cb141-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">icc_ther =</span> ther_var <span class="sc">/</span> total_var,</span>
+<span id="cb141-18"><a href="#cb141-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">icc_pt =</span> (pt_var <span class="sc">+</span> ther_var) <span class="sc">/</span> total_var)</span>
+<span id="cb141-19"><a href="#cb141-19" aria-hidden="true" tabindex="-1"></a>  })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')
+boundary (singular) fit: see help('isSingular')</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb143"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb143-1"><a href="#cb143-1" aria-hidden="true" tabindex="-1"></a>icc_ther <span class="sc">|&gt;</span> <span class="fu">select</span>(variable, icc_pt, icc_ther) <span class="sc">|&gt;</span> <span class="fu">mutate_if</span>(is.numeric, round, <span class="at">digits =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 3
+   variable             icc_pt icc_ther
+   &lt;fct&gt;                 &lt;dbl&gt;    &lt;dbl&gt;
+ 1 AUDIT_sum             0.721    0    
+ 2 BAI_sum               0.507    0.014
+ 3 HAMD_sum              0.236    0    
+ 4 IHS_mean              0.677    0    
+ 5 RS_mean               0.624    0    
+ 6 SIDAS_sum             0.328    0    
+ 7 SIP_sum               0.63     0.02 
+ 8 SOC_concealment_mean  0.872    0    
+ 9 Sx_CASriskacts        0.323    0.141
+10 Sx_totalacts_sum      0.232    0.021</code></pre>
+</div>
+</div>
+<p>Of note, there were 24 unique therapists and many only had 1 participant in the sample.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb145"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb145-1"><a href="#cb145-1" aria-hidden="true" tabindex="-1"></a>apps_outcome <span class="sc">|&gt;</span> </span>
+<span id="cb145-2"><a href="#cb145-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(TherapistID) <span class="sc">|&gt;</span> </span>
+<span id="cb145-3"><a href="#cb145-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">n_distinct</span>(ParticipantID)) <span class="sc">|&gt;</span> </span>
+<span id="cb145-4"><a href="#cb145-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">number_pts =</span> <span class="st">"n_distinct(ParticipantID)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 24 × 2
+   TherapistID number_pts
+   &lt;dbl+lbl&gt;        &lt;int&gt;
+ 1  1 [AG]              1
+ 2  2 [AS]              1
+ 3  3 [BC]              1
+ 4  4 [CT]              2
+ 5  5 [EMB]             1
+ 6  6 [FK]              2
+ 7  7 [FN]              4
+ 8  8 [FP]              2
+ 9  9 [ID]              1
+10 10 [JC]              1
+# ℹ 14 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="demographics" class="level1">
+<h1>Demographics</h1>
+<p>The demographics that were reported in the primary outcome paper include: age, race, ethnicity, sex assigned at birth, gender identity, sexual orientation, education (coded as less than college vs college degree), employment status, past-year personal income (coded as up to $39k, 30-75k or more), and relationship status.</p>
+<p>Let’s pull those variables:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb147"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb147-1"><a href="#cb147-1" aria-hidden="true" tabindex="-1"></a>demos <span class="ot">&lt;-</span> full <span class="sc">|&gt;</span> </span>
+<span id="cb147-2"><a href="#cb147-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Assessment <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb147-3"><a href="#cb147-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(DQ_age, <span class="co"># age</span></span>
+<span id="cb147-4"><a href="#cb147-4" aria-hidden="true" tabindex="-1"></a>       DQ_raceEthnicity, <span class="co"># race</span></span>
+<span id="cb147-5"><a href="#cb147-5" aria-hidden="true" tabindex="-1"></a>       DQ_raceEthnicity.text, <span class="co"># race free response </span></span>
+<span id="cb147-6"><a href="#cb147-6" aria-hidden="true" tabindex="-1"></a>       DQ_latinx, <span class="co"># ethnicity </span></span>
+<span id="cb147-7"><a href="#cb147-7" aria-hidden="true" tabindex="-1"></a>       DQ_birth.sex, <span class="co"># assigned sex at birth</span></span>
+<span id="cb147-8"><a href="#cb147-8" aria-hidden="true" tabindex="-1"></a>       DQ_GenID.man<span class="sc">:</span>DQ_GenID.other, <span class="co"># gender identity</span></span>
+<span id="cb147-9"><a href="#cb147-9" aria-hidden="true" tabindex="-1"></a>       DQ_SexualOrientation, <span class="co"># sexual orientation</span></span>
+<span id="cb147-10"><a href="#cb147-10" aria-hidden="true" tabindex="-1"></a>       DQ_education, <span class="co"># education</span></span>
+<span id="cb147-11"><a href="#cb147-11" aria-hidden="true" tabindex="-1"></a>       DQ_employment, <span class="co"># employment status</span></span>
+<span id="cb147-12"><a href="#cb147-12" aria-hidden="true" tabindex="-1"></a>       DQ_income, <span class="co"># personal income past year</span></span>
+<span id="cb147-13"><a href="#cb147-13" aria-hidden="true" tabindex="-1"></a>       DQ_relationshipStatus<span class="co"># relationship status </span></span>
+<span id="cb147-14"><a href="#cb147-14" aria-hidden="true" tabindex="-1"></a>       )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then recode relevant variables to be consistent with main protocol paper reporting:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb148"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb148-1"><a href="#cb148-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sexual orientation</span></span>
+<span id="cb148-2"><a href="#cb148-2" aria-hidden="true" tabindex="-1"></a>demos <span class="ot">&lt;-</span> demos <span class="sc">|&gt;</span> <span class="fu">mutate</span>(<span class="at">DQ_SOr =</span> <span class="fu">case_when</span>(DQ_SexualOrientation <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-3"><a href="#cb148-3" aria-hidden="true" tabindex="-1"></a>                                   DQ_SexualOrientation <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb148-4"><a href="#cb148-4" aria-hidden="true" tabindex="-1"></a>                                   DQ_SexualOrientation <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb148-5"><a href="#cb148-5" aria-hidden="true" tabindex="-1"></a>                                   DQ_SexualOrientation <span class="sc">==</span> <span class="dv">4</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb148-6"><a href="#cb148-6" aria-hidden="true" tabindex="-1"></a>                                   DQ_SexualOrientation <span class="sc">==</span> <span class="dv">6</span> <span class="sc">~</span> <span class="dv">3</span>,</span>
+<span id="cb148-7"><a href="#cb148-7" aria-hidden="true" tabindex="-1"></a>                                   DQ_SexualOrientation <span class="sc">==</span> <span class="dv">7</span> <span class="sc">~</span> <span class="dv">4</span>),</span>
+<span id="cb148-8"><a href="#cb148-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">DQ_SOr =</span> <span class="fu">recode_factor</span>(DQ_SOr, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Gay"</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Bi"</span>, <span class="st">`</span><span class="at">3</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Queer"</span>, <span class="st">`</span><span class="at">4</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Uncertain"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb148-9"><a href="#cb148-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># education</span></span>
+<span id="cb148-10"><a href="#cb148-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DQ_educr =</span> <span class="fu">case_when</span>(DQ_education <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-11"><a href="#cb148-11" aria-hidden="true" tabindex="-1"></a>                              DQ_education <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb148-12"><a href="#cb148-12" aria-hidden="true" tabindex="-1"></a>                             <span class="at">.default =</span> <span class="dv">2</span>),</span>
+<span id="cb148-13"><a href="#cb148-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">DQ_educr =</span> <span class="fu">recode_factor</span>(DQ_educr, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Less than college"</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"College degree"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb148-14"><a href="#cb148-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># income</span></span>
+<span id="cb148-15"><a href="#cb148-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DQ_incr =</span> <span class="fu">case_when</span>(DQ_income <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-16"><a href="#cb148-16" aria-hidden="true" tabindex="-1"></a>                             DQ_income <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-17"><a href="#cb148-17" aria-hidden="true" tabindex="-1"></a>                             DQ_income <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-18"><a href="#cb148-18" aria-hidden="true" tabindex="-1"></a>                             <span class="at">.default =</span> <span class="dv">2</span>),</span>
+<span id="cb148-19"><a href="#cb148-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">DQ_incr =</span> <span class="fu">recode_factor</span>(DQ_incr, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"up to $29k"</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"$30-75k or more"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb148-20"><a href="#cb148-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># relationship status</span></span>
+<span id="cb148-21"><a href="#cb148-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DQ_relstatusr =</span> <span class="fu">case_when</span>(DQ_relationshipStatus <span class="sc">==</span> <span class="dv">4</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb148-22"><a href="#cb148-22" aria-hidden="true" tabindex="-1"></a>                                   DQ_relationshipStatus <span class="sc">==</span> <span class="dv">5</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
+<span id="cb148-23"><a href="#cb148-23" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">.default =</span> <span class="dv">3</span>),</span>
+<span id="cb148-24"><a href="#cb148-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">DQ_relstatusr =</span> <span class="fu">recode_factor</span>(DQ_relstatusr, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"casually dating"</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"single"</span>, <span class="st">`</span><span class="at">3</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"in a relationship"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Pull demographic information for reporting:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb149"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb149-1"><a href="#cb149-1" aria-hidden="true" tabindex="-1"></a>demos <span class="sc">|&gt;</span> </span>
+<span id="cb149-2"><a href="#cb149-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(DQ_age, DQ_raceEthnicity, DQ_latinx, DQ_birth.sex, DQ_GenID.man<span class="sc">:</span>DQ_GenID.other, DQ_SOr, DQ_educr, DQ_employment, DQ_incr, DQ_relstatusr) <span class="sc">|&gt;</span> </span>
+<span id="cb149-3"><a href="#cb149-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">frq</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>What is your age? (DQ_age) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=26.67 sd=4.09
+
+Value | Label | N | Raw % | Valid % | Cum. %
+--------------------------------------------
+   18 |    18 | 0 |  0.00 |    0.00 |   0.00
+   19 |    19 | 0 |  0.00 |    0.00 |   0.00
+   20 |    20 | 4 |  7.02 |    7.02 |   7.02
+   21 |    21 | 1 |  1.75 |    1.75 |   8.77
+   22 |    22 | 5 |  8.77 |    8.77 |  17.54
+   23 |    23 | 7 | 12.28 |   12.28 |  29.82
+   24 |    24 | 3 |  5.26 |    5.26 |  35.09
+   25 |    25 | 2 |  3.51 |    3.51 |  38.60
+   26 |    26 | 9 | 15.79 |   15.79 |  54.39
+   27 |    27 | 1 |  1.75 |    1.75 |  56.14
+   28 |    28 | 4 |  7.02 |    7.02 |  63.16
+   29 |    29 | 5 |  8.77 |    8.77 |  71.93
+   30 |    30 | 6 | 10.53 |   10.53 |  82.46
+   31 |    31 | 1 |  1.75 |    1.75 |  84.21
+   32 |    32 | 4 |  7.02 |    7.02 |  91.23
+   33 |    33 | 2 |  3.51 |    3.51 |  94.74
+   34 |    34 | 2 |  3.51 |    3.51 |  98.25
+   35 |    35 | 1 |  1.75 |    1.75 | 100.00
+ &lt;NA&gt; |  &lt;NA&gt; | 0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+What racial or ethnic group do you belong to? - Selected Choice (DQ_raceEthnicity) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=1.46 sd=2.06
+
+Value |                                     Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------------------------------------------
+    0 |                                     White | 29 | 50.88 |   50.88 |  50.88
+    1 |                    Black/African American | 13 | 22.81 |   22.81 |  73.68
+    2 |                                     Asian |  2 |  3.51 |    3.51 |  77.19
+    3 |          American Indian or Alaska Native |  0 |  0.00 |    0.00 |  77.19
+    4 | Native Hawaiian or Other Pacific Islander |  1 |  1.75 |    1.75 |  78.95
+    5 |                               Multiracial | 10 | 17.54 |   17.54 |  96.49
+    6 |                    Other (please specify) |  2 |  3.51 |    3.51 | 100.00
+ &lt;NA&gt; |                                      &lt;NA&gt; |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Do you consider yourself Hispanic or Latino? (DQ_latinx) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.33 sd=0.48
+
+Value | Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+    0 |    No | 38 | 66.67 |   66.67 |  66.67
+    1 |   Yes | 19 | 33.33 |   33.33 | 100.00
+ &lt;NA&gt; |  &lt;NA&gt; |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+What was your sex assigned at birth? (DQ_birth.sex) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=1.02 sd=0.13
+
+Value |    Label |  N | Raw % | Valid % | Cum. %
+------------------------------------------------
+    1 |     Male | 56 | 98.25 |   98.25 |  98.25
+    2 |   Female |  1 |  1.75 |    1.75 | 100.00
+    3 | Intersex |  0 |  0.00 |    0.00 | 100.00
+ &lt;NA&gt; |     &lt;NA&gt; |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Man (DQ_GenID.man) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=1.00 sd=0.00
+
+Value | Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+    1 |   Man | 57 |   100 |     100 |    100
+ &lt;NA&gt; |  &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Woman (DQ_GenID.woman) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value | Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+    0 |     0 | 57 |   100 |     100 |    100
+    1 | Woman |  0 |     0 |       0 |    100
+ &lt;NA&gt; |  &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Transgender Man (DQ_GenID.transman) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |                 Label |  N | Raw % | Valid % | Cum. %
+-------------------------------------------------------------
+    0 |                     0 | 57 |   100 |     100 |    100
+    1 | Transgender Man (FtM) |  0 |     0 |       0 |    100
+ &lt;NA&gt; |                  &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Transgender Woman (DQ_GenID.transwoman) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |                   Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------------------------
+    0 |                       0 | 57 |   100 |     100 |    100
+    1 | Transgender Woman (MtF) |  0 |     0 |       0 |    100
+ &lt;NA&gt; |                    &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Gender Queer (DQ_GenID.genderqueer) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |        Label |  N | Raw % | Valid % | Cum. %
+----------------------------------------------------
+    0 |            0 | 57 |   100 |     100 |    100
+    1 | Gender Queer |  0 |     0 |       0 |    100
+ &lt;NA&gt; |         &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Gender Non-Conforming (DQ_GenID.GNC) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |                 Label |  N | Raw % | Valid % | Cum. %
+-------------------------------------------------------------
+    0 |                     0 | 57 |   100 |     100 |    100
+    1 | Gender Non-Conforming |  0 |     0 |       0 |    100
+ &lt;NA&gt; |                  &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Two Spirit (DQ_GenID.twospirit) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |      Label |  N | Raw % | Valid % | Cum. %
+--------------------------------------------------
+    0 |          0 | 57 |   100 |     100 |    100
+    1 | Two Spirit |  0 |     0 |       0 |    100
+ &lt;NA&gt; |       &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Hijra (DQ_GenID.hijra) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value | Label |  N | Raw % | Valid % | Cum. %
+---------------------------------------------
+    0 |     0 | 57 |   100 |     100 |    100
+    1 | Hijra |  0 |     0 |       0 |    100
+ &lt;NA&gt; |  &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Gender Identity-Other (DQ_GenID.other) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=0.00 sd=0.00
+
+Value |                  Label |  N | Raw % | Valid % | Cum. %
+--------------------------------------------------------------
+    0 |                      0 | 57 |   100 |     100 |    100
+    1 | Other (Please specify) |  0 |     0 |       0 |    100
+ &lt;NA&gt; |                   &lt;NA&gt; |  0 |     0 |    &lt;NA&gt; |   &lt;NA&gt;
+
+DQ_SOr &lt;categorical&gt; 
+# total N=57 valid N=57 mean=1.37 sd=0.67
+
+Value     |  N | Raw % | Valid % | Cum. %
+-----------------------------------------
+Gay       | 41 | 71.93 |   71.93 |  71.93
+Bi        | 12 | 21.05 |   21.05 |  92.98
+Queer     |  3 |  5.26 |    5.26 |  98.25
+Uncertain |  1 |  1.75 |    1.75 | 100.00
+&lt;NA&gt;      |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+DQ_educr &lt;categorical&gt; 
+# total N=57 valid N=57 mean=1.93 sd=0.26
+
+Value             |  N | Raw % | Valid % | Cum. %
+-------------------------------------------------
+Less than college |  4 |  7.02 |    7.02 |   7.02
+College degree    | 53 | 92.98 |   92.98 | 100.00
+&lt;NA&gt;              |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+Which of the following best describes your current employment status? (DQ_employment) &lt;numeric&gt; 
+# total N=57 valid N=57 mean=2.42 sd=1.91
+
+Value |                                                         Label |  N
+--------------------------------------------------------------------------
+    1 |                                 Full-time (40 hours per week) | 26
+    2 |                       Part-time (less than 40 hours per week) | 13
+    3 |                            Part-time work - full time student |  8
+    4 |           Permanently or temporarily disabled and NOT working |  0
+    5 | Permanently or temporarily disabled BUT working off the books |  1
+    6 |                                          Unemployed - Student |  6
+    7 |                                            Unemployed - Other |  3
+ &lt;NA&gt; |                                                          &lt;NA&gt; |  0
+
+Value | Raw % | Valid % | Cum. %
+--------------------------------
+    1 | 45.61 |   45.61 |  45.61
+    2 | 22.81 |   22.81 |  68.42
+    3 | 14.04 |   14.04 |  82.46
+    4 |  0.00 |    0.00 |  82.46
+    5 |  1.75 |    1.75 |  84.21
+    6 | 10.53 |   10.53 |  94.74
+    7 |  5.26 |    5.26 | 100.00
+ &lt;NA&gt; |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+DQ_incr &lt;categorical&gt; 
+# total N=57 valid N=57 mean=1.46 sd=0.50
+
+Value           |  N | Raw % | Valid % | Cum. %
+-----------------------------------------------
+up to $29k      | 31 | 54.39 |   54.39 |  54.39
+$30-75k or more | 26 | 45.61 |   45.61 | 100.00
+&lt;NA&gt;            |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;
+
+DQ_relstatusr &lt;categorical&gt; 
+# total N=57 valid N=57 mean=2.07 sd=0.42
+
+Value             |  N | Raw % | Valid % | Cum. %
+-------------------------------------------------
+casually dating   |  3 |  5.26 |    5.26 |   5.26
+single            | 47 | 82.46 |   82.46 |  87.72
+in a relationship |  7 | 12.28 |   12.28 | 100.00
+&lt;NA&gt;              |  0 |  0.00 |    &lt;NA&gt; |   &lt;NA&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="save-data-file" class="level1">
+<h1>Save data file</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb151"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb151-1"><a href="#cb151-1" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(apps_outcome, <span class="at">file =</span> <span class="st">"data/apps_outcome.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="output" class="level1">
+<h1>Output</h1>
+<section id="correlation-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="correlation-matrix">Correlation matrix</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb152"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="co"># computes correlation matrix in a dataframe that can be saved and easily reformated for publication</span></span>
+<span id="cb152-2"><a href="#cb152-2" aria-hidden="true" tabindex="-1"></a>corr_results <span class="ot">&lt;-</span> <span class="fu">correlation</span>(<span class="at">data =</span> apps_outcome, <span class="at">select =</span> <span class="fu">c</span>(<span class="st">"Sx_CASriskacts"</span>, <span class="st">"Sx_totalacts_sum"</span>, <span class="st">"AUDIT_sum"</span>, <span class="st">"SIP_sum"</span>, <span class="st">"HAMD_sum"</span>, <span class="st">"BAI_sum"</span>, <span class="st">"SIDAS_sum"</span>, <span class="st">"SIDAS_yn"</span>, <span class="st">"IHS_mean"</span>, <span class="st">"RS_mean"</span>, <span class="st">"SOC_concealment_mean"</span>, <span class="st">"Average_Affirm"</span>, <span class="st">"WAI_avg"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb152-3"><a href="#cb152-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb152-4"><a href="#cb152-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Parameter1, Parameter2, r, p) <span class="sc">|&gt;</span> </span>
+<span id="cb152-5"><a href="#cb152-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">r =</span> <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, r), <span class="co"># keeps the trailing zeros for correlations</span></span>
+<span id="cb152-6"><a href="#cb152-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">ps =</span> <span class="fu">ifelse</span>(p <span class="sc">&lt;</span> .<span class="dv">10</span>, <span class="st">'+'</span>, <span class="st">''</span>),</span>
+<span id="cb152-7"><a href="#cb152-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">ps =</span> <span class="fu">ifelse</span>(p <span class="sc">&lt;</span> .<span class="dv">05</span>, <span class="st">'*'</span>, ps),</span>
+<span id="cb152-8"><a href="#cb152-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">ps =</span> <span class="fu">ifelse</span>(p <span class="sc">&lt;</span> .<span class="dv">01</span>, <span class="st">'**'</span>, ps),</span>
+<span id="cb152-9"><a href="#cb152-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">ps =</span> <span class="fu">ifelse</span>(p <span class="sc">&lt;</span> .<span class="dv">001</span>, <span class="st">'***'</span>, ps),</span>
+<span id="cb152-10"><a href="#cb152-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">r =</span> <span class="fu">as.character</span>(r)) <span class="sc">|&gt;</span> </span>
+<span id="cb152-11"><a href="#cb152-11" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">unite</span>(r_p, <span class="fu">c</span>(<span class="st">"r"</span>, <span class="st">"ps"</span>), <span class="at">sep =</span> <span class="st">""</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb152-12"><a href="#cb152-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>p)</span>
+<span id="cb152-13"><a href="#cb152-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb152-14"><a href="#cb152-14" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(corr_results, <span class="st">"output/corr_table.csv"</span>)</span>
+<span id="cb152-15"><a href="#cb152-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb152-16"><a href="#cb152-16" aria-hidden="true" tabindex="-1"></a>corr_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             Parameter1           Parameter2     r_p
+1        Sx_CASriskacts     Sx_totalacts_sum 0.60***
+2        Sx_CASriskacts            AUDIT_sum   0.22+
+3        Sx_CASriskacts              SIP_sum    0.20
+4        Sx_CASriskacts             HAMD_sum    0.04
+5        Sx_CASriskacts              BAI_sum   -0.02
+6        Sx_CASriskacts            SIDAS_sum   -0.06
+7        Sx_CASriskacts             SIDAS_yn   -0.10
+8        Sx_CASriskacts             IHS_mean    0.06
+9        Sx_CASriskacts              RS_mean    0.04
+10       Sx_CASriskacts SOC_concealment_mean   -0.10
+11       Sx_CASriskacts       Average_Affirm    0.13
+12       Sx_CASriskacts              WAI_avg   -0.01
+13     Sx_totalacts_sum            AUDIT_sum    0.19
+14     Sx_totalacts_sum              SIP_sum    0.18
+15     Sx_totalacts_sum             HAMD_sum    0.08
+16     Sx_totalacts_sum              BAI_sum    0.02
+17     Sx_totalacts_sum            SIDAS_sum    0.01
+18     Sx_totalacts_sum             SIDAS_yn   -0.01
+19     Sx_totalacts_sum             IHS_mean    0.10
+20     Sx_totalacts_sum              RS_mean    0.16
+21     Sx_totalacts_sum SOC_concealment_mean    0.04
+22     Sx_totalacts_sum       Average_Affirm    0.08
+23     Sx_totalacts_sum              WAI_avg    0.01
+24            AUDIT_sum              SIP_sum 0.64***
+25            AUDIT_sum             HAMD_sum   0.22+
+26            AUDIT_sum              BAI_sum   0.24*
+27            AUDIT_sum            SIDAS_sum    0.16
+28            AUDIT_sum             SIDAS_yn    0.13
+29            AUDIT_sum             IHS_mean  0.27**
+30            AUDIT_sum              RS_mean    0.18
+31            AUDIT_sum SOC_concealment_mean   -0.07
+32            AUDIT_sum       Average_Affirm   -0.02
+33            AUDIT_sum              WAI_avg    0.08
+34              SIP_sum             HAMD_sum  0.26**
+35              SIP_sum              BAI_sum  0.29**
+36              SIP_sum            SIDAS_sum    0.16
+37              SIP_sum             SIDAS_yn    0.14
+38              SIP_sum             IHS_mean    0.21
+39              SIP_sum              RS_mean  0.27**
+40              SIP_sum SOC_concealment_mean   -0.05
+41              SIP_sum       Average_Affirm   -0.12
+42              SIP_sum              WAI_avg    0.12
+43             HAMD_sum              BAI_sum 0.37***
+44             HAMD_sum            SIDAS_sum 0.29***
+45             HAMD_sum             SIDAS_yn   0.25*
+46             HAMD_sum             IHS_mean   0.24*
+47             HAMD_sum              RS_mean  0.26**
+48             HAMD_sum SOC_concealment_mean    0.02
+49             HAMD_sum       Average_Affirm   -0.12
+50             HAMD_sum              WAI_avg   -0.13
+51              BAI_sum            SIDAS_sum    0.15
+52              BAI_sum             SIDAS_yn    0.18
+53              BAI_sum             IHS_mean    0.10
+54              BAI_sum              RS_mean   0.23*
+55              BAI_sum SOC_concealment_mean   -0.06
+56              BAI_sum       Average_Affirm   -0.02
+57              BAI_sum              WAI_avg   -0.09
+58            SIDAS_sum             SIDAS_yn 0.67***
+59            SIDAS_sum             IHS_mean    0.13
+60            SIDAS_sum              RS_mean    0.14
+61            SIDAS_sum SOC_concealment_mean    0.09
+62            SIDAS_sum       Average_Affirm   -0.15
+63            SIDAS_sum              WAI_avg   -0.05
+64             SIDAS_yn             IHS_mean    0.16
+65             SIDAS_yn              RS_mean    0.07
+66             SIDAS_yn SOC_concealment_mean    0.09
+67             SIDAS_yn       Average_Affirm   -0.17
+68             SIDAS_yn              WAI_avg   -0.07
+69             IHS_mean              RS_mean 0.34***
+70             IHS_mean SOC_concealment_mean 0.35***
+71             IHS_mean       Average_Affirm   -0.02
+72             IHS_mean              WAI_avg   -0.14
+73              RS_mean SOC_concealment_mean    0.18
+74              RS_mean       Average_Affirm   -0.01
+75              RS_mean              WAI_avg    0.09
+76 SOC_concealment_mean       Average_Affirm -0.27**
+77 SOC_concealment_mean              WAI_avg  -0.23*
+78       Average_Affirm              WAI_avg    0.15</code></pre>
+</div>
+</div>
+</section>
+<section id="descriptives" class="level2">
+<h2 class="anchored" data-anchor-id="descriptives">Descriptives</h2>
+<p>Pull the descriptives for main study variables for reporting:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb154"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb154-1"><a href="#cb154-1" aria-hidden="true" tabindex="-1"></a>descriptives_results <span class="ot">&lt;-</span> apps_outcome <span class="sc">|&gt;</span>  </span>
+<span id="cb154-2"><a href="#cb154-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm, WAI_avg) <span class="sc">|&gt;</span>  </span>
+<span id="cb154-3"><a href="#cb154-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="fu">list</span>(<span class="at">mean =</span> <span class="sc">~</span> <span class="fu">mean</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb154-4"><a href="#cb154-4" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">median =</span> <span class="sc">~</span> <span class="fu">median</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb154-5"><a href="#cb154-5" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">sd =</span> <span class="sc">~</span> <span class="fu">sd</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb154-6"><a href="#cb154-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">min =</span> <span class="sc">~</span> <span class="fu">min</span>(.x, <span class="at">na.rm =</span> T),</span>
+<span id="cb154-7"><a href="#cb154-7" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">max =</span> <span class="sc">~</span> <span class="fu">max</span>(.x, <span class="at">na.rm =</span> T)),</span>
+<span id="cb154-8"><a href="#cb154-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.names =</span> <span class="st">"{.col}-{.fn}"</span>)</span>
+<span id="cb154-9"><a href="#cb154-9" aria-hidden="true" tabindex="-1"></a>            ) <span class="sc">|&gt;</span>  </span>
+<span id="cb154-10"><a href="#cb154-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb154-11"><a href="#cb154-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="fu">c</span>(<span class="st">"ColNames"</span>, <span class="st">".value"</span>), </span>
+<span id="cb154-12"><a href="#cb154-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_sep =</span> <span class="st">"-"</span>,</span>
+<span id="cb154-13"><a href="#cb154-13" aria-hidden="true" tabindex="-1"></a>               ) <span class="sc">|&gt;</span> </span>
+<span id="cb154-14"><a href="#cb154-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_if</span>(is.numeric, round, <span class="at">digits =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb154-15"><a href="#cb154-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sd =</span> <span class="fu">paste0</span>(<span class="st">'('</span>, sd) <span class="sc">%&gt;%</span> <span class="fu">paste0</span>(<span class="st">')'</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb154-16"><a href="#cb154-16" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">unite</span>(mean_sd, <span class="fu">c</span>(<span class="st">"mean"</span>, <span class="st">"sd"</span>), <span class="at">sep =</span> <span class="st">" "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb154-17"><a href="#cb154-17" aria-hidden="true" tabindex="-1"></a>  tidyr<span class="sc">::</span><span class="fu">unite</span>(range, <span class="fu">c</span>(<span class="st">"min"</span>, <span class="st">"max"</span>), <span class="at">sep =</span> <span class="st">"-"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb154-18"><a href="#cb154-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>median)</span>
+<span id="cb154-19"><a href="#cb154-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb154-20"><a href="#cb154-20" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(descriptives_results, <span class="st">"output/descriptives.csv"</span>)</span>
+<span id="cb154-21"><a href="#cb154-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb154-22"><a href="#cb154-22" aria-hidden="true" tabindex="-1"></a>descriptives_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 14 × 3
+   ColNames             mean_sd       range  
+   &lt;chr&gt;                &lt;chr&gt;         &lt;chr&gt;  
+ 1 Sx_CASriskacts       4.47 (6.41)   0-45   
+ 2 Sx_totalacts_sum     28.63 (27.6)  0-206  
+ 3 AUDIT_sum            8.16 (6.28)   0-29   
+ 4 SIP_sum              3.19 (3.68)   0-15   
+ 5 HAMD_sum             12.27 (6.66)  0-32   
+ 6 BAI_sum              18.8 (11.38)  0-55   
+ 7 SIDAS_sum            2.48 (5.7)    0-39   
+ 8 SIDAS_yn             0.3 (0.46)    0-1    
+ 9 IHS_mean             1.66 (0.63)   1-3.56 
+10 RS_mean              12.2 (7.28)   1-36   
+11 SOC_concealment_mean 1.79 (0.69)   1-3.4  
+12 LGBIS_identaffirm    4.56 (1.28)   1-6    
+13 Average_Affirm       1.38 (1.2)    0-4.75 
+14 WAI_avg              70.39 (10.94) 31.5-84</code></pre>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

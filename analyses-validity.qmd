@@ -1,0 +1,854 @@
+---
+title: "MLM analyses"
+format: html
+editor: visual
+---
+
+# Load packages and data
+
+```{r load packages, warning = F, message = F}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(easystats)
+library(purrr)
+library(psych)
+library(gee)
+library(geepack)
+library(glmtoolbox)
+library(mice)
+library(marginaleffects)
+library(gridExtra)
+library(ggpubr)
+```
+
+# Load data
+
+```{r}
+apps_outcome <- readRDS("data/apps_outcome.rds") 
+```
+
+# Modeling framework
+
+For this project, we modeled validity analyses with generalized estimating equations. We made this decision because:
+
+1.  the substantive interest here is the fixed effect of LADI scores (which do not vary within individuals) on outcomes, where we need to account for clustering (repeated measures within participants) to yield valid estimates but otherwise this clustering is not part of the reserach question for this study
+
+2.  with small sample sizes, assumptions of MLM (e.g., properly specified random effects structure) become difficult to evaluate due to convergence problems that are introduced as well as it being impossible to compare model fit when using restricted maximum likelihood estimation
+
+3.  with binary or count outcomes, GEEs can be more stable than MLMs
+
+For sources supporting this decision, see McNeish, 2014; McNeish et al. 2017. Further, for support that you don't need normal residuals, see: https://www.researchgate.net/post/What_are_the_assumptions_of_the_generalized_estimating_equations
+
+Resources for GEEs: https://library.virginia.edu/data/articles/getting-started-with-generalized-estimating-equations \*\* great https://www.rpubs.com/samopolo/759327 https://ehsanx.github.io/EpiMethods/longitudinal2.html https://tysonbarrett.com/Rstats/chapter-6-multilevel-modeling.html
+
+## Model interpretation
+
+*For outcomes, here is what the parameters represent:*
+
+-   [**Intercept**:]{.underline} Expected value of the outcome at post-intervention, which is the first follow-up appointment. This is *NOT* baseline because of the way that we opted to center assessment so the intercept is interpetable as post-intervention symptoms.
+
+-   [**Assessment_c**:]{.underline} Instantaneous rate of change at post-intervention. This is the expected linear slope of change at post-intervention (much like pre-post change, except it's an estimate that accounts for the entire trajectory). Because we are modeling nonlinear change, the slope is dependent on the timepoint. There are different slopes for 4MFU (post-intervention), 8MFU, and 12MFU that reflects the initial change and then leveling out of that change.
+
+-   [**Assessment_c\_quad**]{.underline}: Curvature of change overall. A positive number means the curve is a smiley face (turns upward) and a negative number means the curve is a frowney face (turns downward).
+
+-   [**Average_c\_affirm**]{.underline}: Association between affirmative technique and mean outcome score assessed at post-intervention. This reflects mean levels, *NOT* change over time.
+
+-   [**Average_c\_affirm\*Assessment_c:**]{.underline} Interaction between affirmative technique and the instantaneous rate of change at post-intervention. In other words, this term tests whether rates of change are different across levels of affirmative techniques. If significant, this needs to be probed to plot the expected slopes across levels of affirmative technique to see whether change strengthens or weakens as a function of the LGBTQ-APPS.
+
+*Interpreting interactions:*
+
+To fully understand the nature of any significant interactions, which is one of our main estimands of interest, then these need to be probed further. A common approach is to "pick a point" (usually 1 SD above and below the mean) and see if the slope is different from zero at that point. This method has been critiqued as being somewhat limited in capturing the full range of information. The Johnson-Neyman technique is one method that has been advanced that overcomes this limitation and is going to be the preferred one reported here (although will also report simple slopes). In these analyses, we are looking to see whether change over time is moderated by the LGBTQ-APPS. The J-N technique allows us to see at what values of the LGBTQ-APPS is change over time significantly different from zero, and it does so across the entire range of the LGBTQ-APPS instead of just 1 SD above and below the mean. **The neat thing about this is that it allows us to see *exactly* what LGBTQ-APPS scores are needed to lead to significant change in outcomes.** For more information on this technique, check out these two papers: McCabe et al. 2018 (link: <https://doi.org/10.1177/2515245917746792>) and Preacher et al. 2006 (link: <https://doi.org/10.3102/107699860310044>). Of note, we do not exactly do the J-N technique because we are 1) using multiple imputation, and 2) using GEEs, where available software in R to my knowledge cannot easily and possibly not accurately handle these models. However, the `marginaleffects` project lets us calculate marginal effects for each value in the dataset to approximate a J-N technique. 
+
+## Sensitivity analyses
+
+Based on preliminary analyses and exploration of the data, we are going to conduct the following sensitivity analyses:
+
+1.  inclusion of covariates for all models: study site, continued treatment at the same community mental health agency, mental health treatment elsewhere, medication, and alliance; additionally, we'll control for total number of sex acts in models predicting HIV transmission risk behavior. 
+
+2.  SIDAS: evaluating consistency of results with SIDAS scored continuously or discretely
+
+3.  HAMD, IHS, and SOC: evaluating consistency of results when excluding potential bivariate outlier
+ 
+# Missing data
+
+We'll handle missing data with multiple imputation via the `mice` package. First, let's go ahead and set up the multiple imputation model and dataset to be used for analyses. 
+```{r}
+#| message: false
+#| warning: false 
+
+imp_df <- apps_outcome |> 
+  mutate(Assessment_quad = Assessment*Assessment) |> 
+  select(ParticipantID, Assessment, Assessment_quad, Assessment_c, Assessment_c_quad, Site, CMHT, MHgen, Medication, WAI_avg_c, Sx_totalacts_sum_c, Average_Affirm, Average_Affirm_c, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) 
+
+# run the mice code with 0 iterations to get the predictorMatrix and methods of imputation
+imp <- mice(imp_df, seed = 808, maxit = 0)
+predM <- imp$predictorMatrix
+meth <- imp$method
+
+# change imputation model method for dichotomous SIDAS since coded as numeric  
+log <- c("SIDAS_yn")
+meth[log] <- "logreg"
+meth
+
+imp <- mice(imp_df, seed = 808, maxit = 20, method = meth, print = F)
+```
+
+# Unadjusted models
+
+## TLFB
+```{r}
+m1_tlfb <- with(imp, 
+               geeglm(Sx_CASriskacts ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+o1 <- pool(m1_tlfb) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "TLFB") |> relocate(variable, 1)
+o1
+```
+
+## AUDIT
+```{r}
+m2_audit <- with(imp, 
+               geeglm(AUDIT_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o2 <- pool(m2_audit) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "AUDIT") |> relocate(variable, 1)
+
+o2
+```
+
+## SIP
+```{r}
+m3_sip <- with(imp, 
+               geeglm(SIP_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+
+o3 <- pool(m3_sip) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIP") |> relocate(variable, 1)
+
+o3
+```
+
+## HAMD
+
+```{r}
+m4_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4 <- pool(m4_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD") |> relocate(variable, 1)
+
+o4
+```
+
+### Interaction probing 
+
+Since the interaction was significant, we need to probe this deeper. 
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+```{r}
+avg_slopes(m4_hamd, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20): 
+```{r}
+avg_slopes(m4_hamd, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes & the instantaneous rate of change from pre-post treatment as this was the effect of interest. 
+```{r}
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c) 
+
+predictions <- predictions(m4_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+)
+
+ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
+  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', 'Post-Treatment (4-Month Follow-up)')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(x = "Assessment", y = "Depressive Symptoms") +
+  theme_classic()  +
+  ylim(10, 18)
+```
+
+
+As all values of the LADI are significant, we are not going to create a J-N type plot that delineates when the slope moves from significant to not significant for this outcome. 
+
+## BAI
+
+```{r}
+m5_bai <- with(imp, 
+               geeglm(BAI_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o5 <- pool(m5_bai) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "BAI") |> relocate(variable, 1)
+
+o5
+```
+
+## SIDAS (continuous)
+
+```{r}
+m6_sidascont <- with(imp, 
+               geeglm(SIDAS_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o6 <- pool(m6_sidascont) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIDAS_cont") |> relocate(variable, 1)
+
+o6
+```
+
+## IHS
+```{r}
+m7_ihs <- with(imp, 
+               geeglm(IHS_mean ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o7 <- pool(m7_ihs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "IHS") |> relocate(variable, 1)
+
+o7
+```
+
+### Interaction probing
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+```{r}
+avg_slopes(m7_ihs, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20): 
+```{r}
+avg_slopes(m7_ihs, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+
+Simple slopes plot: 
+```{r}
+predictions <- predictions(m7_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+)
+
+ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
+  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', 'Post-Treatment (4-Month Follow-up)')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(x = "Assessment", y = "Internalized Stigma") +
+  theme_classic()  +
+  ylim(1.25, 2.25)
+```
+
+## RS
+```{r}
+m8_rs <- with(imp, 
+               geeglm(RS_mean ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o8 <- pool(m8_rs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "RS") |> relocate(variable, 1)
+
+o8
+```
+
+## SOC
+
+```{r}
+m9_soc <- with(imp, 
+               geeglm(SOC_concealment_mean ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o9 <- pool(m9_soc) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SOC") |> relocate(variable, 1)
+
+o9
+```
+
+
+## LGBIS identity affirmation 
+
+```{r}
+m10_lgbis <- with(imp, 
+               geeglm(LGBIS_identaffirm ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o10 <- pool(m10_lgbis) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "LGBIS") |> relocate(variable, 1)
+
+o10
+```
+
+# Adjusted models (with covariates)
+
+## TLFB
+```{r}
+m1.2_tlfb <- with(imp, 
+               geeglm(Sx_CASriskacts ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Sx_totalacts_sum_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+o1.2 <- pool(m1.2_tlfb) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "TLFB.cov") |> relocate(variable, 1)
+o1.2
+```
+
+## AUDIT
+```{r}
+m2.2_audit <- with(imp, 
+               geeglm(AUDIT_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o2.2 <- pool(m2.2_audit) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "AUDIT.cov") |> relocate(variable, 1)
+
+o2.2
+```
+
+## SIP
+```{r}
+m3.2_sip <- with(imp, 
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+
+o3.2 <- pool(m3.2_sip) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIP_cov") |> relocate(variable, 1)
+
+o3.2
+```
+
+### Interaction probing
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+```{r}
+avg_slopes(m3.2_sip, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20): 
+```{r}
+avg_slopes(m3.2_sip, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+
+Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes & the instantaneous rate of change from pre-post treatment as this was the effect of interest. 
+```{r}
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
+
+predictions <- predictions(m3.2_sip, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), Site = "NYC", CMHT = "No or no data", MHgen = "No or no data", Medication = "No or no data", newdata = dg)
+)
+
+fig_sip_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
+  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(title = "Panel A", x = "Assessment", y = "Substance Use Consequences") +
+  theme_classic() 
+#+
+  # code below puts the "Panel A" in the plot since this is surprisingly complicated
+#  labs(tag = "Panel A",
+#    caption = " \n ") +
+#  theme(plot.tag.position = "bottom",
+#        plot.tag.location = "plot")
+  
+fig_sip_cov
+```
+
+## HAMD
+
+```{r}
+m4.2_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.2 <- pool(m4.2_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
+
+o4.2
+```
+
+### Interaction probing
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+```{r}
+avg_slopes(m4.2_hamd, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20): 
+```{r}
+avg_slopes(m4.2_hamd, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+
+Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes & the instantaneous rate of change from pre-post treatment as this was the effect of interest. 
+```{r}
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
+
+predictions <- predictions(m4.2_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), Site = "NYC", CMHT = "No or no data", MHgen = "No or no data", Medication = "No or no data", newdata = dg)
+)
+
+fig_hamd_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
+  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(title = "Panel B", x = "Assessment", y = "Depressive Symptoms") +
+  theme_classic()  +
+  ylim(10, 18) 
+
+fig_hamd_cov
+```
+
+## BAI
+
+```{r}
+m5.2_bai <- with(imp, 
+               geeglm(BAI_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o5.2 <- pool(m5.2_bai) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "BAI_cov") |> relocate(variable, 1)
+
+o5.2
+```
+
+## SIDAS (continuous)
+
+```{r}
+m6.2_sidascont <- with(imp, 
+               geeglm(SIDAS_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o6.2 <- pool(m6.2_sidascont) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIDAS_cont_cov") |> relocate(variable, 1)
+
+o6.2
+```
+
+## IHS
+```{r}
+m7.2_ihs <- with(imp, 
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o7.2 <- pool(m7.2_ihs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "IHS_cov") |> relocate(variable, 1)
+
+o7.2
+```
+
+### Interaction probing
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+```{r}
+avg_slopes(m7.2_ihs, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20): 
+```{r}
+avg_slopes(m7.2_ihs, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+
+Simple slopes plot: 
+```{r}
+predictions <- predictions(m7.2_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+)
+
+fig_ihs_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
+  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(title = "Panel C", x = "Assessment", y = "Internalized Heterosexism") +
+  theme_classic()  +
+  ylim(1.25, 2.25) 
+fig_ihs_cov 
+```
+
+## RS
+```{r}
+m8.2_rs <- with(imp, 
+               geeglm(RS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o8.2 <- pool(m8.2_rs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "RS_cov") |> relocate(variable, 1)
+
+o8.2
+```
+
+## SOC
+
+```{r}
+m9.2_soc <- with(imp, 
+               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o9.2 <- pool(m9.2_soc) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SOC_cov") |> relocate(variable, 1)
+
+o9.2
+```
+
+
+## LGBIS identity affirmation 
+
+```{r}
+m10.2_lgbis <- with(imp, 
+               geeglm(LGBIS_identaffirm ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o10.2 <- pool(m10.2_lgbis) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "LGBIS_cov") |> relocate(variable, 1)
+
+o10.2
+```
+
+# Sensitivity analysis a: SIDAS discrete
+
+```{r}
+m6.3_sidasyn <- with(imp, 
+               geeglm(SIDAS_yn ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = binomial,
+                     corstr = "ar1")) 
+
+o6.3 <- pool(m6.3_sidasyn) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIDAS_yn") |> relocate(variable, 1)
+
+o6.3
+```
+
+# Sensitivity analysis b: HAMD, IHS, and SOC w/ potential outlier excluded 
+
+Identify the outlier (score of 4.75 on LADI):
+```{r}
+apps_outcome |> select(ParticipantID, Average_Affirm) |> arrange(desc(Average_Affirm))
+```
+
+Create a new imputed dataset without 3115:
+```{r}
+#| message: false
+#| warning: false 
+
+imp_df_sens <- apps_outcome |> 
+  mutate(Assessment_quad = Assessment*Assessment) |> 
+  filter(ParticipantID != 3115) |> 
+  select(ParticipantID, Assessment, Assessment_quad, Assessment_c, Assessment_c_quad, Site, CMHT, MHgen, Medication, WAI_avg_c, Sx_totalacts_sum_c, Average_Affirm, Average_Affirm_c, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) 
+
+imp_sens <- mice(imp_df_sens, seed = 808, maxit = 20, method = meth, print = F)
+```
+
+## HAMD
+
+```{r}
+m4.3_hamd <- with(imp_sens, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.3 <- pool(m4.3_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_nooutlier") |> relocate(variable, 1)
+
+o4.3
+```
+
+## IHS
+```{r}
+m7.3_ihs <- with(imp_sens, 
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o7.3 <- pool(m7.3_ihs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "IHS_nooutlier") |> relocate(variable, 1)
+
+o7.3
+```
+
+## SOC
+
+```{r}
+m9.3_soc <- with(imp_sens, 
+               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o9.3 <- pool(m9.3_soc) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SOC_nooutlier") |> relocate(variable, 1)
+
+o9.3
+```
+
+# Output for reporting
+
+## Tables 
+Unadjusted models in one dataframe
+```{r}
+output1_unadj <- rbind(o1, o2, o3, o4, o5, o6, o7, o8, o9, o10)
+output1_unadj
+```
+
+Adjusted models in one dataframe
+```{r}
+output2_adj <- rbind(o1.2, o2.2, o3.2, o4.2, o5.2, o6.2, o7.2, o8.2, o9.2, o10.2)
+output2_adj
+```
+
+Note: sensitivity analysis a (SIDAS discrete) is not going into a table since it's a single model. 
+
+Sensitivity analysis b (outlier exclusion for HAMD, IHS, SOC):
+```{r}
+output3_sens <- rbind(o4.3, o7.3, o9.3)
+output3_sens
+```
+
+For the manuscript, we're going to report the adjusted models in a table. 
+
+```{r}
+save <- output2_adj |> 
+  mutate(across(c("estimate", "std.error", "statistic", "df"), ~ format(round(., 2), nsmall  = 2))) |> 
+  # formatting standard error to be in parentheses
+  mutate(std.error = as.character(std.error)) |> 
+  mutate(se = paste0('(', std.error) %>% paste0(')')) |>
+  # formatting p-value stars
+  mutate(p.value = ifelse(is.na(p.value), 1, p.value),
+         p = ifelse(p.value < .10, '+', ''),
+         p = ifelse(p.value < .05, '*', p),
+         p = ifelse(p.value < .01, '**', p),
+         p = ifelse(p.value < .001, '***', p)) |> 
+  mutate(p = as.character(p)) |> 
+  unite(Estimate_p, c("estimate", "p"), sep = "", remove = F) |> 
+  unite(Estimate_p_SE, c("Estimate_p", "se"), sep = " ", remove = F) 
+
+save <- save |> select(variable, term, Estimate_p_SE) |> 
+  # puts a ' in front of any negative estimates so Excel will not view it as a formula >.<
+  mutate(Estimate_p_SE = ifelse(str_detect(Estimate_p_SE, "-"), paste0("'", Estimate_p_SE), Estimate_p_SE))
+
+write.csv(save, "output/table-output.csv")
+```
+
+## Graphs
+
+Note, need to save this manually in the Viewer pane in R, wasn't able to figure out the code for this. 
+```{r}
+combined <- ggarrange(fig_sip_cov, fig_hamd_cov, fig_ihs_cov, ncol = 3, common.legend = TRUE, legend = "right")
+
+combined
+
+ggsave(combined, filename = "output/interaction_figure.png", device = "png", width = 8, height = 3, dpi = 300) # note: width and height are in inches 
+```
+
+# Possible other codes for plots:
+
+## HAMD interaction plotting
+
+Same simple slopes plot as above, just with change mapped over the entire follow-up period.
+```{r}
+# # dataframe of just variables of interest to define data grid
+# dg <- apps_outcome |> 
+#   select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c) 
+# 
+# predictions <- predictions(m4_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+# )
+# 
+# ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c))) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+#   scale_x_continuous(labels= c('BL', '4M', '8M', '12M')) +
+#   scale_color_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   scale_fill_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   labs(x = "Assessment", y = "Depressive Symptoms")
+```
+
+This is an attempt at getting it to be quadratic, but not entirely sure if this is accurate. 
+```{r}
+# # dataframe of just variables of interest to define data grid
+# dg <- apps_outcome |> 
+#   select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c) 
+# 
+# predictions <- predictions(m4_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Assessment_c_quad = c(0, 1, 4), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+# )
+# 
+# ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c))) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+#   scale_x_continuous(labels= c('BL', '4M', '8M', '12M')) +
+#   scale_color_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   scale_fill_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   labs(x = "Assessment", y = "Depressive Symptoms")
+```
+
+To reproduce the `plot_predictions` output from `marginaleffects` package, which plots up to 5 values from the moderator. 
+```{r}
+# predictions <- predictions(m4_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Assessment_c_quad = 0, Average_Affirm_c = c(-1.38, -0.88, -0.13, 0.87, 3.37), newdata = dg)
+# )
+# 
+# ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c))) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+#   scale_x_continuous(labels= c('BL', '4M', '8M', '12M')) +
+#   scale_color_manual(name = "LADI", values = default_colors, labels = c("0", "0.5", "1.25", "2.25", "4.75")) +
+#   scale_fill_manual(name = "LADI", values = default_colors, labels = c("0", "0.5", "1.25", "2.25", "4.75")) +
+#   labs(x = "Assessment", y = "Depressive Symptoms")
+```
+
+## IHS interaction probing
+
+Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes and change over entire follow-up period.  
+```{r}
+# dataframe of just variables of interest to define data grid
+# dg <- apps_outcome |> 
+#   select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c) 
+# 
+# predictions <- predictions(m7_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
+# )
+# 
+# ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c))) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+#   scale_x_continuous(labels= c('BL', '4M', '8M', '12M')) +
+#   scale_color_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   scale_fill_manual(name = "LADI", values = default_colors, labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+#   labs(x = "Assessment", y = "Internalized Heterosexism")
+```
+
+
+To reproduce the `marginaleffects` plot from `plot_predictions`, which plots up to 5 values from the moderator. 
+```{r}
+# predictions <- predictions(m7_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Assessment_c_quad = 0, Average_Affirm_c = c(-1.38, -0.88, -0.13, 0.87, 3.37), newdata = dg)
+# )
+# 
+# ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c))) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+#   scale_x_continuous(labels= c('BL', '4M', '8M', '12M')) +
+#   scale_color_manual(name = "LADI", values = default_colors, labels = c("0", "0.5", "1.25", "2.25", "4.75")) + 
+#   scale_fill_manual(name = "LADI", values = default_colors, labels = c("0", "0.5", "1.25", "2.25", "4.75")) + 
+#   labs(x = "Assessment", y = "Depressive Symptoms")
+```
