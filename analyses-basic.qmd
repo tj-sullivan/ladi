@@ -1,10 +1,7 @@
 ---
 title: "Data cleaning, descriptives, reliability, histograms, correlations"
 author: "TJ Sullivan"
-format: html
-keep-md: true
-editor: visual
-toc: true
+format: gfm
 ---
 
 ```{r setup, include = F}
@@ -200,7 +197,8 @@ apps_outcome <- apps_outcome |>
 
 # Covariates
 
-Recode to 0/1 structure for models. 
+Recode to 0/1 structure for models.
+
 ```{r}
 apps_outcome <- apps_outcome |> 
   mutate(CMHT = recode_factor(as.factor(CMHT), `0` = "No or no data", `1` = "Continued"),
@@ -211,6 +209,7 @@ apps_outcome <- apps_outcome |>
 ```
 
 Continued CMHT treatment:
+
 ```{r}
 # overall
 apps_outcome |> frq(CMHT)
@@ -220,6 +219,7 @@ apps_outcome |>  group_by(Assessment) |>  frq(CMHT)
 ```
 
 MH treatment elsewhere:
+
 ```{r}
 # overall
 apps_outcome |> frq(MHgen)
@@ -229,6 +229,7 @@ apps_outcome |>  group_by(Assessment) |>  frq(MHgen)
 ```
 
 Medication:
+
 ```{r}
 # overall
 apps_outcome |> frq(Medication)
@@ -236,7 +237,6 @@ apps_outcome |> frq(Medication)
 # by time point
 apps_outcome |>  group_by(Assessment) |>  frq(Medication)
 ```
-
 
 # Descriptives + missing data
 

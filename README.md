@@ -1,9 +1,10 @@
-# ladi
-Repo for analyses of the LGBTQ Identity Affirmation and Discussion Inventory
+# LGBTQ Identity Affirmation and Discussion Inventory
 
-Experimenting with amending a commit
+This is a repository for analyses validating the LGBTQ Identity Affirmation and Discussion Inventory. Contained herein is:
 
-Edit 1 - push after this
+-   `ladi_measure`: this folder contains the item descriptions and scoring manual for the measure
+-   `analyses-basic`: this file contains demographics, descriptive statistics, histograms, bivariate scatterplots, reliability, etc.
+-   `analyses-validity`: this file contains results for validity via generalized estimating equations (see file for more details on modeling framework)
+-   `output`: contains relevant output files from the above two scripts
 
-Edit 2 - after pushing
-
+Of note, there is not a `data` folder in this repo because the data cannot currently be shared publicly. The `analyses-basic` files details the exact file names and locations for data to be verified, which can be made available upon request from the research team for this study. Scripts, however, assume that there is a data folder with the indicated datasets contained in the repo.
