@@ -6,3 +6,4 @@ Experimenting with amending a commit
 Edit 1 - push after this
 
 Edit 2 - after pushing
+
