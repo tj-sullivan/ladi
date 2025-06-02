@@ -1737,6 +1737,106 @@ demos |>
     in a relationship |  7 | 12.28 |   12.28 | 100.00
     <NA>              |  0 |  0.00 |    <NA> |   <NA>
 
+# MINI diagnoses
+
+``` r
+full |>
+  select(ParticipantID, Assessment, contains("MINI")) |> 
+  filter(Assessment == 0) |> 
+  select(MINI_Depression, MINI_Dysthymia, MINI_PanicDisorder, MINI_Agoraphobia, MINI_SocialAnxiety, MINI_OCD, MINI_PTSD, MINI_GAD, MINI_AUD, MINI_SUD) |> 
+    frq()
+```
+
+    Did the pt meet criteria for Depression on the MINI? (MINI_Depression) <numeric> 
+    # total N=57 valid N=57 mean=0.81 sd=0.40
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 11 | 19.30 |   19.30 |  19.30
+        1 |   Yes | 46 | 80.70 |   80.70 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for Dysthymia on the MINI? (MINI_Dysthymia) <numeric> 
+    # total N=57 valid N=57 mean=0.39 sd=0.49
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 35 | 61.40 |   61.40 |  61.40
+        1 |   Yes | 22 | 38.60 |   38.60 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for PanicDisorder on the MINI? (MINI_PanicDisorder) <numeric> 
+    # total N=57 valid N=57 mean=0.30 sd=0.46
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 40 | 70.18 |   70.18 |  70.18
+        1 |   Yes | 17 | 29.82 |   29.82 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for Agoraphobia on the MINI? (MINI_Agoraphobia) <numeric> 
+    # total N=57 valid N=57 mean=0.28 sd=0.45
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 41 | 71.93 |   71.93 |  71.93
+        1 |   Yes | 16 | 28.07 |   28.07 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for SocialAnxiety on the MINI? (MINI_SocialAnxiety) <numeric> 
+    # total N=57 valid N=57 mean=0.49 sd=0.50
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 29 | 50.88 |   50.88 |  50.88
+        1 |   Yes | 28 | 49.12 |   49.12 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for OCD on the MINI? (MINI_OCD) <numeric> 
+    # total N=57 valid N=57 mean=0.23 sd=0.42
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 44 | 77.19 |   77.19 |  77.19
+        1 |   Yes | 13 | 22.81 |   22.81 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for PTSD on the MINI? (MINI_PTSD) <numeric> 
+    # total N=57 valid N=57 mean=0.18 sd=0.38
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 47 | 82.46 |   82.46 |  82.46
+        1 |   Yes | 10 | 17.54 |   17.54 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for GAD on the MINI? (MINI_GAD) <numeric> 
+    # total N=57 valid N=57 mean=0.44 sd=0.50
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 32 | 56.14 |   56.14 |  56.14
+        1 |   Yes | 25 | 43.86 |   43.86 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for Alcohol Use Disorder on the MINI? (MINI_AUD) <numeric> 
+    # total N=57 valid N=57 mean=0.23 sd=0.42
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 44 | 77.19 |   77.19 |  77.19
+        1 |   Yes | 13 | 22.81 |   22.81 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
+    Did the pt meet criteria for any Substance Use Disorder on the MINI? (MINI_SUD) <numeric> 
+    # total N=57 valid N=57 mean=0.56 sd=0.50
+
+    Value | Label |  N | Raw % | Valid % | Cum. %
+    ---------------------------------------------
+        0 |    No | 25 | 43.86 |   43.86 |  43.86
+        1 |   Yes | 32 | 56.14 |   56.14 | 100.00
+     <NA> |  <NA> |  0 |  0.00 |    <NA> |   <NA>
+
 # Save data file
 
 ``` r

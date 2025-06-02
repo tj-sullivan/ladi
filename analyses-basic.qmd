@@ -797,6 +797,17 @@ demos |>
   frq()
 ```
 
+# MINI diagnoses
+
+```{r}
+full |>
+  select(ParticipantID, Assessment, contains("MINI")) |> 
+  filter(Assessment == 0) |> 
+  select(MINI_Depression, MINI_Dysthymia, MINI_PanicDisorder, MINI_Agoraphobia, MINI_SocialAnxiety, MINI_OCD, MINI_PTSD, MINI_GAD, MINI_AUD, MINI_SUD) |> 
+    frq()
+```
+
+
 # Save data file
 
 ```{r}
