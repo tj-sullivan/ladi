@@ -112,7 +112,12 @@ apps <- apps |>
 rm(early)
 rm(mid)
 rm(apps_alliance)
+
+full |> 
+  select(contains("WAI"))
 ```
+
+    # A tibble: 228 × 0
 
 Second, separate out outcome data to separate dataframe & pivot to long
 format.
@@ -770,6 +775,243 @@ calculate_alpha_map(full, "Assessment", c(LGBIS_6, LGBIS_13, LGBIS_26))
     $`Assessment 3`
     [1] 0.8804268
 
+## Working alliance
+
+Because different sessions were coded, some wrangling is needed to get
+the item-level alliance data for the session where the LADI was coded.
+This first chunk will do that and store them in separate dataframes to
+calculate reliability.
+
+``` r
+### code to pull in the item-by-item data for the alliance
+alliance_items <- read_spss("data/WIDE_Therapy Post-Session Surveys for ESTEEM study 2021.10.21.sav")
+
+# create a data frame that denotes which session the LADI was coded for each participant 
+apps_alliance_rel <- 
+  apps |> 
+  select(ParticipantID, Early_Session, Mid_Session)
+
+####### EARLY #######
+
+# select only relevant columns from the alliance data - items 4 & 10 are reverse scored so this code replaces the original with the rescored
+early_alliance_items <- alliance_items |> 
+  select(ParticipantID, contains("P.2"), contains("P.3"), 
+         -WAI4_P.2, -WAI4_P.3, -WAI10_P.2, -WAI10_P.3, 
+         WAI4_P_R.2, WAI4_P_R.3, WAI10_P_R.2, WAI10_P_R.3) |> 
+  select(ParticipantID, contains("WAI"), 
+         WAI4_P_R.2, WAI4_P_R.3, WAI10_P_R.2, WAI10_P_R.3) |> 
+  relocate(WAI4_P_R.2, .after = WAI3_P.2) |> 
+  relocate(WAI4_P_R.3, .after = WAI3_P.3) |> 
+  relocate(WAI10_P_R.2, .after = WAI9_P.2) |> 
+  relocate(WAI10_P_R.3, .after = WAI9_P.3) 
+
+# merge the two datasets together
+apps_alliance_early <- apps_alliance_rel |> 
+  left_join(early_alliance_items, by = "ParticipantID")
+
+# pull the early session 2s
+early_s2 <- apps_alliance_early |> 
+  filter(Early_Session == 2) |> 
+  select(ParticipantID, Early_Session, contains(".2")) |> 
+  rename_with(~ str_replace_all(., c("_P.2" = "_early", "_P_R.2" = "_early")))
+
+# pull the early session 3s
+early_s3 <- apps_alliance_early |> 
+  filter(Early_Session == 3) |> 
+  select(ParticipantID, Early_Session, contains(".3")) |> 
+  rename_with(~ str_replace_all(., c("_P.3" = "_early", "_P_R.3" = "_early")))
+
+# merge early together
+early_alliance <- rbind(early_s2, early_s3)
+
+####### MIDDLE #######
+
+# create a data frame that denotes which session the LADI was coded for each participant 
+apps_alliance_rel <- 
+  apps |> 
+  select(ParticipantID, Early_Session, Mid_Session)
+
+# select only relevant columns from the alliance data - items 4 & 10 are reverse scored so this code replaces the original with the rescored
+mid_alliance_items <- alliance_items |> 
+  select(ParticipantID, contains("P.5"), contains("P.6"), 
+         -WAI4_P.5, -WAI4_P.6, -WAI10_P.5, -WAI10_P.6, 
+         WAI4_P_R.5, WAI4_P_R.6, WAI10_P_R.5, WAI10_P_R.6) |> 
+  select(ParticipantID, contains("WAI"), 
+         WAI4_P_R.5, WAI4_P_R.6, WAI10_P_R.5, WAI10_P_R.6) |> 
+  relocate(WAI4_P_R.5, .after = WAI3_P.5) |> 
+  relocate(WAI4_P_R.6, .after = WAI3_P.6) |> 
+  relocate(WAI10_P_R.5, .after = WAI9_P.5) |> 
+  relocate(WAI10_P_R.6, .after = WAI9_P.6) 
+
+# merge the two datasets together
+apps_alliance_mid <- apps_alliance_rel |> 
+  left_join(mid_alliance_items, by = "ParticipantID")
+
+# pull the mid session 5s
+mid_s2 <- apps_alliance_mid |> 
+  filter(Mid_Session == 5) |> 
+  select(ParticipantID, Mid_Session, contains(".5")) |> 
+  rename_with(~ str_replace_all(., c("_P.5" = "_mid", "_P_R.5" = "_mid")))
+
+# pull the mid session 6s
+mid_s3 <- apps_alliance_mid |> 
+  filter(Mid_Session == 6) |> 
+  select(ParticipantID, Mid_Session, contains(".6")) |> 
+  rename_with(~ str_replace_all(., c("_P.6" = "_mid", "_P_R.6" = "_mid")))
+
+# merge early together
+mid_alliance <- rbind(mid_s2, mid_s3)
+```
+
+Reliability for early alliance scores:
+
+``` r
+# calculate reliability for early 
+early_alliance |> 
+  select(-ParticipantID, -Early_Session) |> 
+  alpha()
+```
+
+
+    Reliability analysis   
+    Call: alpha(x = select(early_alliance, -ParticipantID, -Early_Session))
+
+      raw_alpha std.alpha G6(smc) average_r S/N   ase mean   sd median_r
+          0.91      0.93    0.96      0.53  14 0.018  5.8 0.97     0.67
+
+        95% confidence boundaries 
+             lower alpha upper
+    Feldt     0.88  0.91  0.94
+    Duhachek  0.88  0.91  0.95
+
+     Reliability if an item is dropped:
+                raw_alpha std.alpha G6(smc) average_r S/N alpha se var.r med.r
+    WAI1_early       0.90      0.92    0.95      0.51  12    0.021 0.079  0.66
+    WAI2_early       0.90      0.93    0.96      0.53  13    0.020 0.084  0.67
+    WAI3_early       0.90      0.92    0.95      0.52  12    0.020 0.082  0.67
+    WAI4_early       0.93      0.94    0.96      0.59  16    0.015 0.072  0.70
+    WAI5_early       0.90      0.92    0.95      0.51  11    0.021 0.081  0.64
+    WAI6_early       0.90      0.92    0.95      0.52  12    0.021 0.085  0.67
+    WAI7_early       0.90      0.92    0.95      0.51  11    0.021 0.079  0.64
+    WAI8_early       0.90      0.92    0.95      0.52  12    0.020 0.081  0.67
+    WAI9_early       0.91      0.93    0.95      0.54  13    0.019 0.081  0.68
+    WAI10_early      0.94      0.95    0.97      0.62  18    0.013 0.045  0.70
+    WAI11_early      0.90      0.92    0.95      0.52  12    0.021 0.082  0.67
+    WAI12_early      0.90      0.92    0.95      0.51  11    0.022 0.080  0.64
+
+     Item statistics 
+                 n raw.r std.r r.cor r.drop mean  sd
+    WAI1_early  56  0.87  0.89  0.89   0.84  6.0 1.1
+    WAI2_early  56  0.74  0.75  0.73   0.68  5.8 1.5
+    WAI3_early  56  0.79  0.81  0.80   0.74  6.0 1.2
+    WAI4_early  56  0.46  0.41  0.34   0.33  5.5 1.8
+    WAI5_early  56  0.88  0.89  0.88   0.85  5.8 1.2
+    WAI6_early  56  0.86  0.86  0.86   0.82  6.0 1.2
+    WAI7_early  56  0.91  0.92  0.93   0.89  5.9 1.2
+    WAI8_early  56  0.82  0.84  0.84   0.78  6.0 1.1
+    WAI9_early  56  0.69  0.71  0.70   0.62  5.8 1.4
+    WAI10_early 56  0.29  0.23  0.15   0.14  5.3 1.8
+    WAI11_early 56  0.84  0.86  0.86   0.80  5.8 1.3
+    WAI12_early 56  0.90  0.91  0.91   0.88  5.8 1.3
+
+    Non missing response frequency for each item
+                   1    2    3    4    5    6    7 miss
+    WAI1_early  0.00 0.00 0.00 0.14 0.16 0.29 0.41 0.02
+    WAI2_early  0.04 0.02 0.00 0.11 0.16 0.29 0.39 0.02
+    WAI3_early  0.00 0.00 0.04 0.12 0.16 0.16 0.52 0.02
+    WAI4_early  0.05 0.05 0.07 0.09 0.02 0.32 0.39 0.02
+    WAI5_early  0.00 0.02 0.02 0.12 0.12 0.38 0.34 0.02
+    WAI6_early  0.02 0.00 0.00 0.09 0.20 0.21 0.48 0.02
+    WAI7_early  0.00 0.02 0.02 0.11 0.18 0.29 0.39 0.02
+    WAI8_early  0.00 0.00 0.04 0.07 0.18 0.25 0.46 0.02
+    WAI9_early  0.02 0.00 0.05 0.07 0.20 0.23 0.43 0.02
+    WAI10_early 0.07 0.04 0.04 0.11 0.14 0.32 0.29 0.02
+    WAI11_early 0.00 0.02 0.04 0.12 0.18 0.23 0.41 0.02
+    WAI12_early 0.02 0.00 0.02 0.12 0.18 0.32 0.34 0.02
+
+Reliability for middle alliance scores:
+
+``` r
+# calculate reliability for middle 
+mid_alliance |> 
+  select(-ParticipantID, -Mid_Session) |> 
+  alpha()
+```
+
+
+    Reliability analysis   
+    Call: alpha(x = select(mid_alliance, -ParticipantID, -Mid_Session))
+
+      raw_alpha std.alpha G6(smc) average_r S/N   ase mean sd median_r
+          0.93      0.95    0.97      0.62  19 0.014  5.9  1      0.7
+
+        95% confidence boundaries 
+             lower alpha upper
+    Feldt      0.9  0.93  0.96
+    Duhachek   0.9  0.93  0.96
+
+     Reliability if an item is dropped:
+              raw_alpha std.alpha G6(smc) average_r S/N alpha se var.r med.r
+    WAI1_mid       0.92      0.94    0.96      0.60  17   0.0165 0.066  0.69
+    WAI2_mid       0.92      0.94    0.97      0.60  17   0.0169 0.064  0.70
+    WAI3_mid       0.92      0.95    0.97      0.62  18   0.0160 0.067  0.71
+    WAI4_mid       0.93      0.95    0.97      0.66  21   0.0141 0.066  0.73
+    WAI5_mid       0.92      0.94    0.96      0.60  17   0.0170 0.065  0.70
+    WAI6_mid       0.92      0.94    0.97      0.60  16   0.0168 0.066  0.69
+    WAI7_mid       0.92      0.95    0.97      0.61  17   0.0162 0.067  0.70
+    WAI8_mid       0.92      0.94    0.96      0.61  17   0.0164 0.065  0.70
+    WAI9_mid       0.92      0.95    0.97      0.61  17   0.0164 0.068  0.71
+    WAI10_mid      0.96      0.96    0.98      0.71  27   0.0084 0.023  0.73
+    WAI11_mid      0.92      0.94    0.96      0.60  17   0.0165 0.063  0.69
+    WAI12_mid      0.92      0.94    0.96      0.60  16   0.0174 0.063  0.69
+
+     Item statistics 
+               n raw.r std.r r.cor r.drop mean  sd
+    WAI1_mid  57  0.88  0.89  0.89   0.86  6.1 1.1
+    WAI2_mid  57  0.89  0.90  0.90   0.86  6.1 1.3
+    WAI3_mid  57  0.80  0.82  0.82   0.76  6.0 1.2
+    WAI4_mid  57  0.63  0.59  0.54   0.54  5.9 1.7
+    WAI5_mid  57  0.88  0.90  0.90   0.86  5.9 1.4
+    WAI6_mid  57  0.90  0.91  0.91   0.88  6.1 1.2
+    WAI7_mid  57  0.82  0.84  0.84   0.79  6.0 1.2
+    WAI8_mid  57  0.86  0.88  0.88   0.83  6.0 1.1
+    WAI9_mid  57  0.82  0.83  0.82   0.78  5.9 1.4
+    WAI10_mid 57  0.36  0.29  0.22   0.20  5.1 2.1
+    WAI11_mid 57  0.87  0.89  0.89   0.84  6.0 1.1
+    WAI12_mid 57  0.91  0.93  0.93   0.89  5.9 1.4
+
+    Non missing response frequency for each item
+                 1    2    3    4    5    6    7 miss
+    WAI1_mid  0.00 0.02 0.02 0.04 0.14 0.37 0.42    0
+    WAI2_mid  0.02 0.02 0.00 0.09 0.07 0.32 0.49    0
+    WAI3_mid  0.00 0.00 0.04 0.09 0.18 0.23 0.47    0
+    WAI4_mid  0.05 0.04 0.00 0.09 0.07 0.21 0.54    0
+    WAI5_mid  0.02 0.04 0.02 0.04 0.18 0.30 0.42    0
+    WAI6_mid  0.02 0.00 0.00 0.09 0.09 0.33 0.47    0
+    WAI7_mid  0.00 0.02 0.02 0.07 0.18 0.26 0.46    0
+    WAI8_mid  0.00 0.02 0.00 0.11 0.12 0.32 0.44    0
+    WAI9_mid  0.04 0.00 0.02 0.04 0.21 0.26 0.44    0
+    WAI10_mid 0.14 0.05 0.05 0.07 0.04 0.35 0.30    0
+    WAI11_mid 0.00 0.00 0.04 0.09 0.19 0.25 0.44    0
+    WAI12_mid 0.04 0.00 0.02 0.11 0.14 0.25 0.46    0
+
+Remove dataframes no longer needed:
+
+``` r
+rm(apps_alliance_early)
+rm(apps_alliance_mid)
+rm(apps_alliance_rel)
+rm(early_alliance)
+rm(early_alliance_items)
+rm(early_s2)
+rm(early_s3)
+rm(mid_alliance)
+rm(mid_alliance_items)
+rm(mid_s2)
+rm(mid_s3)
+rm(alliance_items)
+```
+
 # Overall histograms
 
 ``` r
@@ -786,296 +1028,6 @@ plot_outcomes_sum <- function(data, outcome_vars) {
 
 outcome_vars_sum <- c("Sx_CASriskacts", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "SIDAS_yn")
 plot_outcomes_sum(apps_outcome, outcome_vars_sum)
-```
-
-    [[1]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-1.png)
-
-
-    [[2]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-2.png)
-
-
-    [[3]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-3.png)
-
-
-    [[4]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-4.png)
-
-
-    [[5]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-5.png)
-
-
-    [[6]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-6.png)
-
-
-    [[7]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-7.png)
-
-``` r
-plot_outcomes_mean <- function(data, outcome_vars) {
-  plots <- map(outcome_vars, function(var) {
-    var_sym <- sym(var)
-    data %>%
-      ggplot(aes(x = !!var_sym)) +
-      geom_histogram(binwidth = 0.3)
-  })
-  
-  return(plots)
-}
-
-outcome_vars_mean <- c("IHS_mean", "RS_mean", "SOC_concealment_mean", "LGBIS_identaffirm")
-plot_outcomes_mean(apps_outcome, outcome_vars_mean)
-```
-
-    [[1]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-8.png)
-
-
-    [[2]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-9.png)
-
-
-    [[3]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-10.png)
-
-
-    [[4]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-24-11.png)
-
-# Change trajectories
-
-## Individual plots
-
-``` r
-individ_trajs <- function(data, outcome_vars) {
-  plots <- map(outcome_vars, function(var) {
-    var_sym <- sym(var)
-    data |> 
-      ggplot(aes(x = Assessment, y = !!var_sym)) +
-      geom_point() +
-      stat_smooth(method = "loess", se = FALSE) +
-      facet_wrap(~ ParticipantID) 
-  })
-  
-  return(plots)
-}
-
-outcome_vars <- c("Sx_CASriskacts", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "IHS_mean", "RS_mean", "SOC_concealment_mean")
-individ_trajs(apps_outcome, outcome_vars)
-```
-
-    [[1]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-1.png)
-
-
-    [[2]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-2.png)
-
-
-    [[3]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-3.png)
-
-
-    [[4]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-4.png)
-
-
-    [[5]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-5.png)
-
-
-    [[6]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-6.png)
-
-
-    [[7]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-7.png)
-
-
-    [[8]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-8.png)
-
-
-    [[9]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-25-9.png)
-
-### Spaghetti plots
-
-``` r
-spaghetti <- function(data, outcome_vars) {
-  plots <- map(outcome_vars, function(var) {
-    var_sym <- sym(var)
-    data |> 
-      ggplot(aes(x = Assessment, y = !!var_sym)) +
-      stat_smooth(aes(group = ParticipantID),
-              method = "loess", se = F, size = 1/16) +
-      stat_smooth(method = "loess", se = F, size = 2, color = "purple")
-  })
-  
-  return(plots)
-}
-
-spaghetti(apps_outcome, outcome_vars)
-```
-
-    [[1]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-1.png)
-
-
-    [[2]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-2.png)
-
-
-    [[3]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-3.png)
-
-
-    [[4]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-4.png)
-
-
-    [[5]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-5.png)
-
-
-    [[6]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-6.png)
-
-
-    [[7]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-7.png)
-
-
-    [[8]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-8.png)
-
-
-    [[9]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-26-9.png)
-
-# Scatterplots
-
-Overall scores:
-
-``` r
-#apps_outcome |> 
-#  ggplot(aes(x = Average_Affirm, y = HAMD_sum)) + 
-#  geom_point() + 
-#  geom_jitter() +
-#  stat_smooth(method = "loess")
-
-scatter <- function(data, outcome_vars) {
-  plots <- map(outcome_vars, function(var) {
-    var_sym <- sym(var)
-    data |> 
-      ggplot(aes(x = Average_Affirm, y = !!var_sym)) +
-      geom_point() +
-      geom_jitter() +
-      stat_smooth(method = "loess")
-  })
-  
-  return(plots)
-}
-
-scatter(apps_outcome, outcome_vars)
-```
-
-    [[1]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-1.png)
-
-
-    [[2]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-2.png)
-
-
-    [[3]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-3.png)
-
-
-    [[4]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-4.png)
-
-
-    [[5]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-5.png)
-
-
-    [[6]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-6.png)
-
-
-    [[7]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-7.png)
-
-
-    [[8]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-8.png)
-
-
-    [[9]]
-
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-27-9.png)
-
-Just post-treatment scores to make this clearer. Note that we wrote over
-the function above.
-
-``` r
-scatter <- function(data, outcome_vars) {
-  plots <- map(outcome_vars, function(var) {
-    var_sym <- sym(var)
-    data |> 
-      filter(Assessment == 1) |> 
-      ggplot(aes(x = Average_Affirm, y = !!var_sym)) +
-      geom_point() +
-      geom_jitter() +
-      stat_smooth(method = "loess")
-  })
-  
-  return(plots)
-}
-
-scatter(apps_outcome, outcome_vars)
 ```
 
     [[1]]
@@ -1112,15 +1064,305 @@ scatter(apps_outcome, outcome_vars)
 
 ![](analyses-basic_files/figure-commonmark/unnamed-chunk-28-7.png)
 
+``` r
+plot_outcomes_mean <- function(data, outcome_vars) {
+  plots <- map(outcome_vars, function(var) {
+    var_sym <- sym(var)
+    data %>%
+      ggplot(aes(x = !!var_sym)) +
+      geom_histogram(binwidth = 0.3)
+  })
+  
+  return(plots)
+}
 
-    [[8]]
+outcome_vars_mean <- c("IHS_mean", "RS_mean", "SOC_concealment_mean", "LGBIS_identaffirm")
+plot_outcomes_mean(apps_outcome, outcome_vars_mean)
+```
+
+    [[1]]
 
 ![](analyses-basic_files/figure-commonmark/unnamed-chunk-28-8.png)
 
 
-    [[9]]
+    [[2]]
 
 ![](analyses-basic_files/figure-commonmark/unnamed-chunk-28-9.png)
+
+
+    [[3]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-28-10.png)
+
+
+    [[4]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-28-11.png)
+
+# Change trajectories
+
+## Individual plots
+
+``` r
+individ_trajs <- function(data, outcome_vars) {
+  plots <- map(outcome_vars, function(var) {
+    var_sym <- sym(var)
+    data |> 
+      ggplot(aes(x = Assessment, y = !!var_sym)) +
+      geom_point() +
+      stat_smooth(method = "loess", se = FALSE) +
+      facet_wrap(~ ParticipantID) 
+  })
+  
+  return(plots)
+}
+
+outcome_vars <- c("Sx_CASriskacts", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "IHS_mean", "RS_mean", "SOC_concealment_mean")
+individ_trajs(apps_outcome, outcome_vars)
+```
+
+    [[1]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-1.png)
+
+
+    [[2]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-2.png)
+
+
+    [[3]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-3.png)
+
+
+    [[4]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-4.png)
+
+
+    [[5]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-5.png)
+
+
+    [[6]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-6.png)
+
+
+    [[7]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-7.png)
+
+
+    [[8]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-8.png)
+
+
+    [[9]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-29-9.png)
+
+### Spaghetti plots
+
+``` r
+spaghetti <- function(data, outcome_vars) {
+  plots <- map(outcome_vars, function(var) {
+    var_sym <- sym(var)
+    data |> 
+      ggplot(aes(x = Assessment, y = !!var_sym)) +
+      stat_smooth(aes(group = ParticipantID),
+              method = "loess", se = F, size = 1/16) +
+      stat_smooth(method = "loess", se = F, size = 2, color = "purple")
+  })
+  
+  return(plots)
+}
+
+spaghetti(apps_outcome, outcome_vars)
+```
+
+    [[1]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-1.png)
+
+
+    [[2]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-2.png)
+
+
+    [[3]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-3.png)
+
+
+    [[4]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-4.png)
+
+
+    [[5]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-5.png)
+
+
+    [[6]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-6.png)
+
+
+    [[7]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-7.png)
+
+
+    [[8]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-8.png)
+
+
+    [[9]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-9.png)
+
+# Scatterplots
+
+Overall scores:
+
+``` r
+#apps_outcome |> 
+#  ggplot(aes(x = Average_Affirm, y = HAMD_sum)) + 
+#  geom_point() + 
+#  geom_jitter() +
+#  stat_smooth(method = "loess")
+
+scatter <- function(data, outcome_vars) {
+  plots <- map(outcome_vars, function(var) {
+    var_sym <- sym(var)
+    data |> 
+      ggplot(aes(x = Average_Affirm, y = !!var_sym)) +
+      geom_point() +
+      geom_jitter() +
+      stat_smooth(method = "loess")
+  })
+  
+  return(plots)
+}
+
+scatter(apps_outcome, outcome_vars)
+```
+
+    [[1]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-1.png)
+
+
+    [[2]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-2.png)
+
+
+    [[3]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-3.png)
+
+
+    [[4]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-4.png)
+
+
+    [[5]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-5.png)
+
+
+    [[6]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-6.png)
+
+
+    [[7]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-7.png)
+
+
+    [[8]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-8.png)
+
+
+    [[9]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-9.png)
+
+Just post-treatment scores to make this clearer. Note that we wrote over
+the function above.
+
+``` r
+scatter <- function(data, outcome_vars) {
+  plots <- map(outcome_vars, function(var) {
+    var_sym <- sym(var)
+    data |> 
+      filter(Assessment == 1) |> 
+      ggplot(aes(x = Average_Affirm, y = !!var_sym)) +
+      geom_point() +
+      geom_jitter() +
+      stat_smooth(method = "loess")
+  })
+  
+  return(plots)
+}
+
+scatter(apps_outcome, outcome_vars)
+```
+
+    [[1]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-1.png)
+
+
+    [[2]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-2.png)
+
+
+    [[3]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-3.png)
+
+
+    [[4]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-4.png)
+
+
+    [[5]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-5.png)
+
+
+    [[6]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-6.png)
+
+
+    [[7]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-7.png)
+
+
+    [[8]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-8.png)
+
+
+    [[9]]
+
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-9.png)
 
 Inspection of the bivariate scatterplot shows that there are a couple of
 points at the far range of the LADI that might be influencing the
@@ -1180,47 +1422,47 @@ scatter(apps_outcome, outcome_vars)
 
     [[1]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-1.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-1.png)
 
 
     [[2]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-2.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-2.png)
 
 
     [[3]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-3.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-3.png)
 
 
     [[4]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-4.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-4.png)
 
 
     [[5]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-5.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-5.png)
 
 
     [[6]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-6.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-6.png)
 
 
     [[7]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-7.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-7.png)
 
 
     [[8]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-8.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-8.png)
 
 
     [[9]]
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-30-9.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-34-9.png)
 
 By and large the scatterplots are similar with and without the excluded
 folks. However, the HAMD, IHS, and SOC are all measures that seem to
@@ -1247,7 +1489,7 @@ hamd.2 <- apps_outcome |>
 grid.arrange(hamd.1, hamd.2, ncol = 2)
 ```
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-31-1.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-35-1.png)
 
 For IHS:
 
@@ -1270,7 +1512,7 @@ ihs.2 <- apps_outcome |>
 grid.arrange(ihs.1, ihs.2, ncol = 2)
 ```
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-32-1.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-36-1.png)
 
 For SOC:
 
@@ -1293,7 +1535,7 @@ soc.2 <- apps_outcome |>
 grid.arrange(soc.1, soc.2, ncol = 2)
 ```
 
-![](analyses-basic_files/figure-commonmark/unnamed-chunk-33-1.png)
+![](analyses-basic_files/figure-commonmark/unnamed-chunk-37-1.png)
 
 # Correlations
 

@@ -109,6 +109,9 @@ apps <- apps |>
 rm(early)
 rm(mid)
 rm(apps_alliance)
+
+full |> 
+  select(contains("WAI"))
 ```
 
 Second, separate out outcome data to separate dataframe & pivot to long format.
@@ -424,6 +427,123 @@ calculate_alpha_map(full, "Assessment", c(SOC_FamilyR, SOC_GLBFriendsR, SOC_Str8
 
 get_raw_alpha(full, c(LGBIS_6, LGBIS_13, LGBIS_26))
 calculate_alpha_map(full, "Assessment", c(LGBIS_6, LGBIS_13, LGBIS_26)) 
+```
+
+## Working alliance 
+
+Because different sessions were coded, some wrangling is needed to get the item-level alliance data for the session where the LADI was coded. This first chunk will do that and store them in separate dataframes to calculate reliability.
+
+```{r}
+### code to pull in the item-by-item data for the alliance
+alliance_items <- read_spss("data/WIDE_Therapy Post-Session Surveys for ESTEEM study 2021.10.21.sav")
+
+# create a data frame that denotes which session the LADI was coded for each participant 
+apps_alliance_rel <- 
+  apps |> 
+  select(ParticipantID, Early_Session, Mid_Session)
+
+####### EARLY #######
+
+# select only relevant columns from the alliance data - items 4 & 10 are reverse scored so this code replaces the original with the rescored
+early_alliance_items <- alliance_items |> 
+  select(ParticipantID, contains("P.2"), contains("P.3"), 
+         -WAI4_P.2, -WAI4_P.3, -WAI10_P.2, -WAI10_P.3, 
+         WAI4_P_R.2, WAI4_P_R.3, WAI10_P_R.2, WAI10_P_R.3) |> 
+  select(ParticipantID, contains("WAI"), 
+         WAI4_P_R.2, WAI4_P_R.3, WAI10_P_R.2, WAI10_P_R.3) |> 
+  relocate(WAI4_P_R.2, .after = WAI3_P.2) |> 
+  relocate(WAI4_P_R.3, .after = WAI3_P.3) |> 
+  relocate(WAI10_P_R.2, .after = WAI9_P.2) |> 
+  relocate(WAI10_P_R.3, .after = WAI9_P.3) 
+
+# merge the two datasets together
+apps_alliance_early <- apps_alliance_rel |> 
+  left_join(early_alliance_items, by = "ParticipantID")
+
+# pull the early session 2s
+early_s2 <- apps_alliance_early |> 
+  filter(Early_Session == 2) |> 
+  select(ParticipantID, Early_Session, contains(".2")) |> 
+  rename_with(~ str_replace_all(., c("_P.2" = "_early", "_P_R.2" = "_early")))
+
+# pull the early session 3s
+early_s3 <- apps_alliance_early |> 
+  filter(Early_Session == 3) |> 
+  select(ParticipantID, Early_Session, contains(".3")) |> 
+  rename_with(~ str_replace_all(., c("_P.3" = "_early", "_P_R.3" = "_early")))
+
+# merge early together
+early_alliance <- rbind(early_s2, early_s3)
+
+####### MIDDLE #######
+
+# create a data frame that denotes which session the LADI was coded for each participant 
+apps_alliance_rel <- 
+  apps |> 
+  select(ParticipantID, Early_Session, Mid_Session)
+
+# select only relevant columns from the alliance data - items 4 & 10 are reverse scored so this code replaces the original with the rescored
+mid_alliance_items <- alliance_items |> 
+  select(ParticipantID, contains("P.5"), contains("P.6"), 
+         -WAI4_P.5, -WAI4_P.6, -WAI10_P.5, -WAI10_P.6, 
+         WAI4_P_R.5, WAI4_P_R.6, WAI10_P_R.5, WAI10_P_R.6) |> 
+  select(ParticipantID, contains("WAI"), 
+         WAI4_P_R.5, WAI4_P_R.6, WAI10_P_R.5, WAI10_P_R.6) |> 
+  relocate(WAI4_P_R.5, .after = WAI3_P.5) |> 
+  relocate(WAI4_P_R.6, .after = WAI3_P.6) |> 
+  relocate(WAI10_P_R.5, .after = WAI9_P.5) |> 
+  relocate(WAI10_P_R.6, .after = WAI9_P.6) 
+
+# merge the two datasets together
+apps_alliance_mid <- apps_alliance_rel |> 
+  left_join(mid_alliance_items, by = "ParticipantID")
+
+# pull the mid session 5s
+mid_s2 <- apps_alliance_mid |> 
+  filter(Mid_Session == 5) |> 
+  select(ParticipantID, Mid_Session, contains(".5")) |> 
+  rename_with(~ str_replace_all(., c("_P.5" = "_mid", "_P_R.5" = "_mid")))
+
+# pull the mid session 6s
+mid_s3 <- apps_alliance_mid |> 
+  filter(Mid_Session == 6) |> 
+  select(ParticipantID, Mid_Session, contains(".6")) |> 
+  rename_with(~ str_replace_all(., c("_P.6" = "_mid", "_P_R.6" = "_mid")))
+
+# merge early together
+mid_alliance <- rbind(mid_s2, mid_s3)
+```
+
+Reliability for early alliance scores:
+```{r}
+# calculate reliability for early 
+early_alliance |> 
+  select(-ParticipantID, -Early_Session) |> 
+  alpha()
+```
+
+Reliability for middle alliance scores:
+```{r}
+# calculate reliability for middle 
+mid_alliance |> 
+  select(-ParticipantID, -Mid_Session) |> 
+  alpha()
+```
+
+Remove dataframes no longer needed:
+```{r}
+rm(apps_alliance_early)
+rm(apps_alliance_mid)
+rm(apps_alliance_rel)
+rm(early_alliance)
+rm(early_alliance_items)
+rm(early_s2)
+rm(early_s3)
+rm(mid_alliance)
+rm(mid_alliance_items)
+rm(mid_s2)
+rm(mid_s3)
+rm(alliance_items)
 ```
 
 # Overall histograms
