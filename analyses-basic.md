@@ -2091,7 +2091,7 @@ saveRDS(apps_outcome, file = "data/apps_outcome.rds")
 
 ``` r
 # computes correlation matrix in a dataframe that can be saved and easily reformated for publication
-corr_results <- correlation(data = apps_outcome, select = c("Sx_CASriskacts", "Sx_totalacts_sum", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "SIDAS_yn", "IHS_mean", "RS_mean", "SOC_concealment_mean", "Average_Affirm", "WAI_avg")) |> 
+corr_results <- correlation(data = apps_outcome, select = c("Sx_CASriskacts", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "IHS_mean", "RS_mean", "SOC_concealment_mean", "Average_Affirm")) |> 
   as.data.frame() |> 
   select(Parameter1, Parameter2, r, p) |> 
   mutate(r = sprintf("%.2f", r), # keeps the trailing zeros for correlations
@@ -2109,84 +2109,51 @@ corr_results
 ```
 
                  Parameter1           Parameter2     r_p
-    1        Sx_CASriskacts     Sx_totalacts_sum 0.60***
-    2        Sx_CASriskacts            AUDIT_sum   0.22+
-    3        Sx_CASriskacts              SIP_sum    0.20
-    4        Sx_CASriskacts             HAMD_sum    0.04
-    5        Sx_CASriskacts              BAI_sum   -0.02
-    6        Sx_CASriskacts            SIDAS_sum   -0.06
-    7        Sx_CASriskacts             SIDAS_yn   -0.10
-    8        Sx_CASriskacts             IHS_mean    0.06
-    9        Sx_CASriskacts              RS_mean    0.04
-    10       Sx_CASriskacts SOC_concealment_mean   -0.10
-    11       Sx_CASriskacts       Average_Affirm    0.13
-    12       Sx_CASriskacts              WAI_avg   -0.01
-    13     Sx_totalacts_sum            AUDIT_sum    0.19
-    14     Sx_totalacts_sum              SIP_sum    0.18
-    15     Sx_totalacts_sum             HAMD_sum    0.08
-    16     Sx_totalacts_sum              BAI_sum    0.02
-    17     Sx_totalacts_sum            SIDAS_sum    0.01
-    18     Sx_totalacts_sum             SIDAS_yn   -0.01
-    19     Sx_totalacts_sum             IHS_mean    0.10
-    20     Sx_totalacts_sum              RS_mean    0.16
-    21     Sx_totalacts_sum SOC_concealment_mean    0.04
-    22     Sx_totalacts_sum       Average_Affirm    0.08
-    23     Sx_totalacts_sum              WAI_avg    0.01
-    24            AUDIT_sum              SIP_sum 0.64***
-    25            AUDIT_sum             HAMD_sum   0.22+
-    26            AUDIT_sum              BAI_sum   0.24*
-    27            AUDIT_sum            SIDAS_sum    0.16
-    28            AUDIT_sum             SIDAS_yn    0.13
-    29            AUDIT_sum             IHS_mean  0.27**
-    30            AUDIT_sum              RS_mean    0.18
-    31            AUDIT_sum SOC_concealment_mean   -0.07
-    32            AUDIT_sum       Average_Affirm   -0.02
-    33            AUDIT_sum              WAI_avg    0.08
-    34              SIP_sum             HAMD_sum  0.26**
-    35              SIP_sum              BAI_sum  0.29**
-    36              SIP_sum            SIDAS_sum    0.16
-    37              SIP_sum             SIDAS_yn    0.14
-    38              SIP_sum             IHS_mean    0.21
-    39              SIP_sum              RS_mean  0.27**
-    40              SIP_sum SOC_concealment_mean   -0.05
-    41              SIP_sum       Average_Affirm   -0.12
-    42              SIP_sum              WAI_avg    0.12
-    43             HAMD_sum              BAI_sum 0.37***
-    44             HAMD_sum            SIDAS_sum 0.29***
-    45             HAMD_sum             SIDAS_yn   0.25*
-    46             HAMD_sum             IHS_mean   0.24*
-    47             HAMD_sum              RS_mean  0.26**
-    48             HAMD_sum SOC_concealment_mean    0.02
-    49             HAMD_sum       Average_Affirm   -0.12
-    50             HAMD_sum              WAI_avg   -0.13
-    51              BAI_sum            SIDAS_sum    0.15
-    52              BAI_sum             SIDAS_yn    0.18
-    53              BAI_sum             IHS_mean    0.10
-    54              BAI_sum              RS_mean   0.23*
-    55              BAI_sum SOC_concealment_mean   -0.06
-    56              BAI_sum       Average_Affirm   -0.02
-    57              BAI_sum              WAI_avg   -0.09
-    58            SIDAS_sum             SIDAS_yn 0.67***
-    59            SIDAS_sum             IHS_mean    0.13
-    60            SIDAS_sum              RS_mean    0.14
-    61            SIDAS_sum SOC_concealment_mean    0.09
-    62            SIDAS_sum       Average_Affirm   -0.15
-    63            SIDAS_sum              WAI_avg   -0.05
-    64             SIDAS_yn             IHS_mean    0.16
-    65             SIDAS_yn              RS_mean    0.07
-    66             SIDAS_yn SOC_concealment_mean    0.09
-    67             SIDAS_yn       Average_Affirm   -0.17
-    68             SIDAS_yn              WAI_avg   -0.07
-    69             IHS_mean              RS_mean 0.34***
-    70             IHS_mean SOC_concealment_mean 0.35***
-    71             IHS_mean       Average_Affirm   -0.02
-    72             IHS_mean              WAI_avg   -0.14
-    73              RS_mean SOC_concealment_mean    0.18
-    74              RS_mean       Average_Affirm   -0.01
-    75              RS_mean              WAI_avg    0.09
-    76 SOC_concealment_mean       Average_Affirm -0.27**
-    77 SOC_concealment_mean              WAI_avg  -0.23*
-    78       Average_Affirm              WAI_avg    0.15
+    1        Sx_CASriskacts            AUDIT_sum   0.22*
+    2        Sx_CASriskacts              SIP_sum   0.20+
+    3        Sx_CASriskacts             HAMD_sum    0.04
+    4        Sx_CASriskacts              BAI_sum   -0.02
+    5        Sx_CASriskacts            SIDAS_sum   -0.06
+    6        Sx_CASriskacts             IHS_mean    0.06
+    7        Sx_CASriskacts              RS_mean    0.04
+    8        Sx_CASriskacts SOC_concealment_mean   -0.10
+    9        Sx_CASriskacts       Average_Affirm    0.13
+    10            AUDIT_sum              SIP_sum 0.64***
+    11            AUDIT_sum             HAMD_sum   0.22*
+    12            AUDIT_sum              BAI_sum   0.24*
+    13            AUDIT_sum            SIDAS_sum    0.16
+    14            AUDIT_sum             IHS_mean  0.27**
+    15            AUDIT_sum              RS_mean    0.18
+    16            AUDIT_sum SOC_concealment_mean   -0.07
+    17            AUDIT_sum       Average_Affirm   -0.02
+    18              SIP_sum             HAMD_sum  0.26**
+    19              SIP_sum              BAI_sum 0.29***
+    20              SIP_sum            SIDAS_sum    0.16
+    21              SIP_sum             IHS_mean   0.21+
+    22              SIP_sum              RS_mean  0.27**
+    23              SIP_sum SOC_concealment_mean   -0.05
+    24              SIP_sum       Average_Affirm   -0.12
+    25             HAMD_sum              BAI_sum 0.37***
+    26             HAMD_sum            SIDAS_sum 0.29***
+    27             HAMD_sum             IHS_mean   0.24*
+    28             HAMD_sum              RS_mean  0.26**
+    29             HAMD_sum SOC_concealment_mean    0.02
+    30             HAMD_sum       Average_Affirm   -0.12
+    31              BAI_sum            SIDAS_sum    0.15
+    32              BAI_sum             IHS_mean    0.10
+    33              BAI_sum              RS_mean   0.23*
+    34              BAI_sum SOC_concealment_mean   -0.06
+    35              BAI_sum       Average_Affirm   -0.02
+    36            SIDAS_sum             IHS_mean    0.13
+    37            SIDAS_sum              RS_mean    0.14
+    38            SIDAS_sum SOC_concealment_mean    0.09
+    39            SIDAS_sum       Average_Affirm   -0.15
+    40             IHS_mean              RS_mean 0.34***
+    41             IHS_mean SOC_concealment_mean 0.35***
+    42             IHS_mean       Average_Affirm   -0.02
+    43              RS_mean SOC_concealment_mean    0.18
+    44              RS_mean       Average_Affirm   -0.01
+    45 SOC_concealment_mean       Average_Affirm -0.27**
 
 ## Descriptives
 
@@ -2194,7 +2161,7 @@ Pull the descriptives for main study variables for reporting:
 
 ``` r
 descriptives_results <- apps_outcome |>  
-  select(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm, WAI_avg) |>  
+  select(Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm) |>  
   summarize(across(everything(), list(mean = ~ mean(.x, na.rm = T),
                                       median = ~ median(.x, na.rm = T),
                                       sd = ~ sd(.x, na.rm = T),
@@ -2217,23 +2184,20 @@ write.csv(descriptives_results, "output/descriptives.csv")
 descriptives_results
 ```
 
-    # A tibble: 14 × 3
-       ColNames             mean_sd       range  
-       <chr>                <chr>         <chr>  
-     1 Sx_CASriskacts       4.47 (6.41)   0-45   
-     2 Sx_totalacts_sum     28.63 (27.6)  0-206  
-     3 AUDIT_sum            8.16 (6.28)   0-29   
-     4 SIP_sum              3.19 (3.68)   0-15   
-     5 HAMD_sum             12.27 (6.66)  0-32   
-     6 BAI_sum              18.8 (11.38)  0-55   
-     7 SIDAS_sum            2.48 (5.7)    0-39   
-     8 SIDAS_yn             0.3 (0.46)    0-1    
-     9 IHS_mean             1.66 (0.63)   1-3.56 
-    10 RS_mean              12.2 (7.28)   1-36   
-    11 SOC_concealment_mean 1.79 (0.69)   1-3.4  
-    12 LGBIS_identaffirm    4.56 (1.28)   1-6    
-    13 Average_Affirm       1.38 (1.2)    0-4.75 
-    14 WAI_avg              70.39 (10.94) 31.5-84
+    # A tibble: 11 × 3
+       ColNames             mean_sd      range 
+       <chr>                <chr>        <chr> 
+     1 Sx_CASriskacts       4.47 (6.41)  0-45  
+     2 AUDIT_sum            8.16 (6.28)  0-29  
+     3 SIP_sum              3.19 (3.68)  0-15  
+     4 HAMD_sum             12.27 (6.66) 0-32  
+     5 BAI_sum              18.8 (11.38) 0-55  
+     6 SIDAS_sum            2.48 (5.7)   0-39  
+     7 IHS_mean             1.66 (0.63)  1-3.56
+     8 RS_mean              12.2 (7.28)  1-36  
+     9 SOC_concealment_mean 1.79 (0.69)  1-3.4 
+    10 LGBIS_identaffirm    4.56 (1.28)  1-6   
+    11 Average_Affirm       1.38 (1.2)   0-4.75
 
 # Session info
 
