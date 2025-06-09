@@ -16,7 +16,41 @@ library(irr)
 apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
 ```
 
-# Wrangle data for code 
+# Calculate ICCs
+
+First, make an overall variable for the average rating (early + mid) for each coder:
+```{r}
+apps <- apps |> 
+  row_means(Early_Affirm_Coder1, Mid_Affirm_Coder1, n = Inf, var = "Average_Affirm_Coder1") |> 
+  row_means(Early_Affirm_Coder2, Mid_Affirm_Coder2, n = Inf, var = "Average_Affirm_Coder2")
+```
+
+The `irr` package was used to calculate ICCs. The first part of the code specifies the type of model, which here is set two "twoway" b/c the design is fully crossed, such that we have 20% of videos rated by all coders to compare for reliability -- it would be oneway if not all coders rated all participants used for reliability. The second part specifies the type of analyses, which here is set to "agreement" b/c we want people to be closer in absolute value, whereas consistency will calculate this based on rank order. The third part specifies the unit, which here is set to "average" b/c we took the average ratings across coders. The last two options (r0) and conf.level are for null hypothesis significance testing. 
+
+ICC for early sessions:
+```{r}
+select(apps, Early_Affirm_Coder1, Early_Affirm_Coder2) |> 
+  data.matrix() |> 
+  icc(c("twoway"), type = c("agreement"), unit = c("average"), r0 = 0, conf.level = 0.95)
+```
+
+ICC for mid sessions:
+
+```{r}
+select(apps, Mid_Affirm_Coder1, Mid_Affirm_Coder2) |> 
+  data.matrix() |> 
+  icc(c("twoway"), type = c("agreement"), unit = c("average"), r0 = 0, conf.level = 0.95)
+```
+
+ICC for average sessions:
+```{r}
+select(apps, Average_Affirm_Coder1, Average_Affirm_Coder2) |> 
+  data.matrix() |> 
+  icc(c("twoway"), type = c("agreement"), unit = c("average"), r0 = 0, conf.level = 0.95)
+```
+
+
+# Wrangle data for item-by-item code 
 ```{r}
 data <- apps |> 
   select(ParticipantID, 
