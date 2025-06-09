@@ -1,0 +1,206 @@
+---
+title: "Reliability Analyses"
+format: gfm
+---
+
+# Load packages
+```{r, warning = F, message = F}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(irr)
+```
+
+# Load data
+```{r}
+apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
+```
+
+# Wrangle data for code 
+```{r}
+data <- apps |> 
+  select(ParticipantID, 
+         Early_Session_Coder1_Affirm_Item1:Early_Session_Coder1_Affirm_Item10,
+         Early_Session_Coder2_Affirm_Item1:Early_Session_Coder2_Affirm_Item10,
+         Mid_Session_Coder1_Affirm_Item1:Mid_Session_Coder1_Affirm_Item10,
+         Mid_Session_Coder2_Affirm_Item1:Mid_Session_Coder2_Affirm_Item10) |> 
+  rename(Early1_r1 = Early_Session_Coder1_Affirm_Item1,
+         Early2_r1 = Early_Session_Coder1_Affirm_Item2,
+         Early3_r1 = Early_Session_Coder1_Affirm_Item3,
+         Early4_r1 = Early_Session_Coder1_Affirm_Item4,
+         Early5_r1 = Early_Session_Coder1_Affirm_Item5,
+         Early6_r1 = Early_Session_Coder1_Affirm_Item6,
+         Early7_r1 = Early_Session_Coder1_Affirm_Item7,
+         Early8_r1 = Early_Session_Coder1_Affirm_Item8,
+         Early9_r1 = Early_Session_Coder1_Affirm_Item9,
+         Early10_r1 = Early_Session_Coder1_Affirm_Item10) |> 
+  rename(Early1_r2 = Early_Session_Coder2_Affirm_Item1,
+         Early2_r2 = Early_Session_Coder2_Affirm_Item2,
+         Early3_r2 = Early_Session_Coder2_Affirm_Item3,
+         Early4_r2 = Early_Session_Coder2_Affirm_Item4,
+         Early5_r2 = Early_Session_Coder2_Affirm_Item5,
+         Early6_r2 = Early_Session_Coder2_Affirm_Item6,
+         Early7_r2 = Early_Session_Coder2_Affirm_Item7,
+         Early8_r2 = Early_Session_Coder2_Affirm_Item8,
+         Early9_r2 = Early_Session_Coder2_Affirm_Item9,
+         Early10_r2 = Early_Session_Coder2_Affirm_Item10) |> 
+  rename(Mid1_r1 = Mid_Session_Coder1_Affirm_Item1,
+         Mid2_r1 = Mid_Session_Coder1_Affirm_Item2,
+         Mid3_r1 = Mid_Session_Coder1_Affirm_Item3,
+         Mid4_r1 = Mid_Session_Coder1_Affirm_Item4,
+         Mid5_r1 = Mid_Session_Coder1_Affirm_Item5,
+         Mid6_r1 = Mid_Session_Coder1_Affirm_Item6,
+         Mid7_r1 = Mid_Session_Coder1_Affirm_Item7,
+         Mid8_r1 = Mid_Session_Coder1_Affirm_Item8,
+         Mid9_r1 = Mid_Session_Coder1_Affirm_Item9,
+         Mid10_r1 = Mid_Session_Coder1_Affirm_Item10) |> 
+  rename(Mid1_r2 = Mid_Session_Coder2_Affirm_Item1,
+         Mid2_r2 = Mid_Session_Coder2_Affirm_Item2,
+         Mid3_r2 = Mid_Session_Coder2_Affirm_Item3,
+         Mid4_r2 = Mid_Session_Coder2_Affirm_Item4,
+         Mid5_r2 = Mid_Session_Coder2_Affirm_Item5,
+         Mid6_r2 = Mid_Session_Coder2_Affirm_Item6,
+         Mid7_r2 = Mid_Session_Coder2_Affirm_Item7,
+         Mid8_r2 = Mid_Session_Coder2_Affirm_Item8,
+         Mid9_r2 = Mid_Session_Coder2_Affirm_Item9,
+         Mid10_r2 = Mid_Session_Coder2_Affirm_Item10) |> 
+  zap_labels() |> 
+  zap_label() |> 
+  zap_formats() |> 
+  zap_widths()
+```
+
+# Holley & Guilford's G calculation
+
+```{r}
+# Tell R which columns correspond to rater 1 and rater 2 respectively
+#grep is cool for pattern identification
+rater1_cols <- grep("_r1$", names(data), value = TRUE)
+#but make sure that column names are the same
+#because R is finding and replacing here
+rater2_cols <- gsub("_r1$", "_r2", rater1_cols)
+
+# Compute Guilford's G for each item with a loop
+guilford_g <- numeric(length(rater1_cols))
+item_names <- gsub("_r1$", "", rater1_cols)
+# 
+for (i in seq_along(rater1_cols)) {
+  r1 <- data[[rater1_cols[i]]]
+  r2 <- data[[rater2_cols[i]]]
+
+  agreements <- sum(r1 == r2, na.rm = TRUE)
+  disagreements <- sum(r1 != r2, na.rm = TRUE)
+
+  if ((agreements + disagreements) > 0) {
+    guilford_g[i] <- ((agreements / (agreements + disagreements))-0.5)/(1-0.5)
+    #using 0.5 here because 1-Pc, chance is (1/2) 0.5 with dichotomous vars
+  } else {
+    guilford_g[i] <- NA #to avoid dividing by 0
+  }
+}
+```
+
+# Percent agreement on presence and absence
+
+Code created from calculations presented by Xu & Lorber (2014)
+```{r}
+ppos <- function(df) {
+  cts <- table(df)
+  
+  if (sum(dim(cts)) != 4){
+  df[,1] <- factor(df[,1], levels = c("0", "1"))
+  df[,2] <- factor(df[,2], levels = c("0", "1"))
+  
+  cts <- table(df)
+  }
+  
+  a <- cts[2,2] # represents count of agreement of presence
+  b <- cts[1,2] # represents column-wise disagreement
+  c <- cts[2,1] # represents row-wise disagreement
+  d <- cts[1,1] # represents count of agreement on absence
+
+  ppos <- (2*a)/((a+b)+(a+c))
+  
+  print(ppos)
+}
+
+
+pneg <- function(df) {
+  cts <- table(df)
+  
+  if (sum(dim(cts)) != 4){
+  df[,1] <- factor(df[,1], levels = c("0", "1"))
+  df[,2] <- factor(df[,2], levels = c("0", "1"))
+  
+  cts <- table(df)
+  }
+  
+  a <- cts[2,2] # represents count of agreement of presence
+  b <- cts[1,2] # represents column-wise disagreement
+  c <- cts[2,1] # represents row-wise disagreement
+  d <- cts[1,1] # represents count of agreement on absence
+
+  pneg <- (2*d)/((b+d)+(c+d))
+
+  print(pneg)
+}
+
+
+ppos_df <- numeric(length(rater1_cols))
+for (i in seq_along(rater1_cols)) {
+  r1 <- data[[rater1_cols[i]]]
+  r2 <- data[[rater2_cols[i]]]
+  
+  tb <- as.data.frame(cbind(r1, r2))
+
+  ppos_df[i] <- ppos(tb)
+}
+
+pneg_df <- numeric(length(rater1_cols))
+for (i in seq_along(rater1_cols)) {
+  r1 <- data[[rater1_cols[i]]]
+  r2 <- data[[rater2_cols[i]]]
+  
+  tb <- as.data.frame(cbind(r1, r2))
+
+  pneg_df[i] <- pneg(tb)
+}
+```
+
+# Output
+
+```{r}
+#Create and print summary table with Guilford's G for each item
+g_table <- tibble(
+  Item = item_names,
+  Guilford_G = round(guilford_g, 3),
+  ppos = round(ppos_df, 4),
+  pneg = round(pneg_df, 4)
+)
+g_table
+```
+
+Average G:
+```{r}
+#Average G: just averages across all 10 Gs above
+average_g <- mean(guilford_g, na.rm = TRUE)
+cat("\nAverage Guilford's G:", round(average_g, 3), "\n")
+```
+
+Early G average:
+```{r}
+early_g <- mean(guilford_g[1:10], na.rm = T)
+cat("\nEarly Sessions Guilford's G:", round(early_g, 3), "\n")
+```
+
+Mid G average:
+```{r}
+mid_g <- mean(guilford_g[11:20], na.rm = T)
+cat("\nMid Sessions Guilford's G:", round(mid_g, 3), "\n")
+```
+
+Save to a .csv file:
+```{r}
+write.csv(g_table, "output/reliability.csv")
+```
+
