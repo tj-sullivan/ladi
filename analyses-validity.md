@@ -1943,3 +1943,73 @@ Save combined plot:
 ``` r
 ggsave(combined, filename = "output/interaction_figure.png", device = "png", width = 8, height = 3, dpi = 300) # note: width and height are in inches
 ```
+
+# Session info
+
+``` r
+sessionInfo()
+```
+
+    R version 4.4.3 (2025-02-28 ucrt)
+    Platform: x86_64-w64-mingw32/x64
+    Running under: Windows 11 x64 (build 22631)
+
+    Matrix products: default
+
+
+    locale:
+    [1] LC_COLLATE=English_United States.utf8 
+    [2] LC_CTYPE=English_United States.utf8   
+    [3] LC_MONETARY=English_United States.utf8
+    [4] LC_NUMERIC=C                          
+    [5] LC_TIME=English_United States.utf8    
+
+    time zone: America/New_York
+    tzcode source: internal
+
+    attached base packages:
+    [1] stats     graphics  grDevices utils     datasets  methods   base     
+
+    other attached packages:
+     [1] ggpubr_0.6.0           marginaleffects_0.25.1 mice_3.17.0           
+     [4] glmtoolbox_0.1.12      geepack_1.3.12         gee_4.13-29           
+     [7] psych_2.5.3            see_0.11.0             report_0.6.1          
+    [10] parameters_0.24.2      performance_0.13.0     modelbased_0.10.0     
+    [13] insight_1.1.0          effectsize_1.0.0       datawizard_1.0.2      
+    [16] correlation_0.8.7      bayestestR_0.15.2      easystats_0.7.4       
+    [19] haven_2.5.4            sjmisc_2.8.10          lubridate_1.9.4       
+    [22] forcats_1.0.0          stringr_1.5.1          dplyr_1.1.4           
+    [25] purrr_1.0.4            readr_2.1.5            tidyr_1.3.1           
+    [28] tibble_3.2.1           ggplot2_3.5.1          tidyverse_2.0.0       
+
+    loaded via a namespace (and not attached):
+     [1] Rdpack_2.6.3        mnormt_2.1.1        gridExtra_2.3      
+     [4] rlang_1.1.5         magrittr_2.0.3      compiler_4.4.3     
+     [7] systemfonts_1.2.2   vctrs_0.6.5         pkgconfig_2.0.3    
+    [10] shape_1.4.6.1       fastmap_1.2.0       backports_1.5.0    
+    [13] labeling_0.4.3      rmarkdown_2.29      tzdb_0.5.0         
+    [16] nloptr_2.2.1        ragg_1.3.3          xfun_0.52          
+    [19] Rfast_2.1.5.1       glmnet_4.1-8        jomo_2.7-6         
+    [22] jsonlite_2.0.0      SuppDists_1.1-9.9   pan_1.9            
+    [25] broom_1.0.8         parallel_4.4.3      R6_2.6.1           
+    [28] stringi_1.8.7       car_3.1-3           boot_1.3-31        
+    [31] rpart_4.1.24        numDeriv_2016.8-1.1 estimability_1.5.1 
+    [34] Rcpp_1.0.14         iterators_1.0.14    knitr_1.50         
+    [37] Matrix_1.7-2        splines_4.4.3       nnet_7.3-20        
+    [40] timechange_0.3.0    tidyselect_1.2.1    abind_1.4-8        
+    [43] rstudioapi_0.17.1   yaml_2.3.10         codetools_0.2-20   
+    [46] sjlabelled_1.2.0    lattice_0.22-6      withr_3.0.2        
+    [49] coda_0.19-4.1       evaluate_1.0.3      survival_3.8-3     
+    [52] RcppParallel_5.1.10 pillar_1.10.2       carData_3.0-5      
+    [55] checkmate_2.3.2     foreach_1.5.2       reformulas_0.4.0   
+    [58] generics_0.1.3      hms_1.1.3           munsell_0.5.1      
+    [61] scales_1.3.0        minqa_1.2.8         xtable_1.8-4       
+    [64] glue_1.8.0          emmeans_1.11.0      tools_4.4.3        
+    [67] data.table_1.17.0   lme4_1.1-37         ggsignif_0.6.4     
+    [70] mvtnorm_1.3-3       cowplot_1.1.3       grid_4.4.3         
+    [73] rbibutils_2.3       colorspace_2.1-1    nlme_3.1-167       
+    [76] Formula_1.2-5       cli_3.6.4           zigg_0.0.2         
+    [79] textshaping_1.0.0   viridisLite_0.4.2   gtable_0.3.6       
+    [82] rstatix_0.7.2       digest_0.6.37       farver_2.1.2       
+    [85] htmltools_0.5.8.1   lifecycle_1.0.4     mitml_0.4-5        
+    [88] statmod_1.5.0       MASS_7.3-64        

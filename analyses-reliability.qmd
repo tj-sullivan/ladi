@@ -238,3 +238,8 @@ Save to a .csv file:
 write.csv(g_table, "output/reliability.csv")
 ```
 
+# Session info
+
+```{r}
+sessionInfo()
+```

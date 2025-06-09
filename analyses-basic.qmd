@@ -985,3 +985,10 @@ write.csv(descriptives_results, "output/descriptives.csv")
 
 descriptives_results
 ```
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+

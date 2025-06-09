@@ -378,3 +378,46 @@ Save to a .csv file:
 ``` r
 write.csv(g_table, "output/reliability.csv")
 ```
+
+# Session info
+
+``` r
+sessionInfo()
+```
+
+    R version 4.4.3 (2025-02-28 ucrt)
+    Platform: x86_64-w64-mingw32/x64
+    Running under: Windows 11 x64 (build 22631)
+
+    Matrix products: default
+
+
+    locale:
+    [1] LC_COLLATE=English_United States.utf8 
+    [2] LC_CTYPE=English_United States.utf8   
+    [3] LC_MONETARY=English_United States.utf8
+    [4] LC_NUMERIC=C                          
+    [5] LC_TIME=English_United States.utf8    
+
+    time zone: America/New_York
+    tzcode source: internal
+
+    attached base packages:
+    [1] stats     graphics  grDevices utils     datasets  methods   base     
+
+    other attached packages:
+     [1] irr_0.84.1      lpSolve_5.6.23  haven_2.5.4     sjmisc_2.8.10  
+     [5] lubridate_1.9.4 forcats_1.0.0   stringr_1.5.1   dplyr_1.1.4    
+     [9] purrr_1.0.4     readr_2.1.5     tidyr_1.3.1     tibble_3.2.1   
+    [13] ggplot2_3.5.1   tidyverse_2.0.0
+
+    loaded via a namespace (and not attached):
+     [1] gtable_0.3.6      jsonlite_2.0.0    compiler_4.4.3    tidyselect_1.2.1 
+     [5] scales_1.3.0      yaml_2.3.10       fastmap_1.2.0     R6_2.6.1         
+     [9] generics_0.1.3    sjlabelled_1.2.0  knitr_1.50        insight_1.1.0    
+    [13] munsell_0.5.1     pillar_1.10.2     tzdb_0.5.0        rlang_1.1.5      
+    [17] utf8_1.2.4        stringi_1.8.7     xfun_0.52         timechange_0.3.0 
+    [21] cli_3.6.4         withr_3.0.2       magrittr_2.0.3    digest_0.6.37    
+    [25] grid_4.4.3        rstudioapi_0.17.1 hms_1.1.3         lifecycle_1.0.4  
+    [29] vctrs_0.6.5       evaluate_1.0.3    glue_1.8.0        colorspace_2.1-1 
+    [33] rmarkdown_2.29    tools_4.4.3       pkgconfig_2.0.3   htmltools_0.5.8.1

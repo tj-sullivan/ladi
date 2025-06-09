@@ -797,6 +797,12 @@ Save combined plot:
 ggsave(combined, filename = "output/interaction_figure.png", device = "png", width = 8, height = 3, dpi = 300) # note: width and height are in inches
 ```
 
+# Session info
+
+```{r}
+sessionInfo()
+```
+
 ```{r possible other codes for plots}
 #| eval: false
 #| include: false
