@@ -804,8 +804,8 @@ We'll calculate ICCs from a random intercepts MLM. First, we'll evaluate nesting
 ```{r}
 # function to calculate ICCs for all outcomes
 icc_pt <- apps_outcome %>% 
-  select(ParticipantID, Assessment_c, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean) %>% 
-  pivot_longer(c(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean),
+  select(ParticipantID, Assessment_c, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) %>% 
+  pivot_longer(c(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm),
                names_to = "variable",
                values_to = "outcome") %>% 
   mutate(variable = as.factor(variable)) %>% 
@@ -827,8 +827,8 @@ Second, we'll consider nesting of participants within therapists.
 
 ```{r}
 icc_ther <- apps_outcome |>  
-  select(ParticipantID, TherapistID, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean) |>  
-  pivot_longer(c(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean),
+  select(ParticipantID, TherapistID, Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |>  
+  pivot_longer(c(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm),
                names_to = "variable",
                values_to = "outcome") |> 
   mutate(variable = as.factor(variable)) |>  
@@ -940,7 +940,7 @@ saveRDS(apps_outcome, file = "data/apps_outcome.rds")
 
 ```{r}
 # computes correlation matrix in a dataframe that can be saved and easily reformated for publication
-corr_results <- correlation(data = apps_outcome, select = c("Sx_CASriskacts", "Sx_totalacts_sum", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "SIDAS_yn", "IHS_mean", "RS_mean", "SOC_concealment_mean", "Average_Affirm", "WAI_avg")) |> 
+corr_results <- correlation(data = apps_outcome, select = c("Sx_CASriskacts", "AUDIT_sum", "SIP_sum", "HAMD_sum", "BAI_sum", "SIDAS_sum", "IHS_mean", "RS_mean", "SOC_concealment_mean", "LGBIS_identaffirm", "Average_Affirm")) |> 
   as.data.frame() |> 
   select(Parameter1, Parameter2, r, p) |> 
   mutate(r = sprintf("%.2f", r), # keeps the trailing zeros for correlations
@@ -963,7 +963,7 @@ Pull the descriptives for main study variables for reporting:
 
 ```{r}
 descriptives_results <- apps_outcome |>  
-  select(Sx_CASriskacts, Sx_totalacts_sum, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm, WAI_avg) |>  
+  select(Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, Average_Affirm) |>  
   summarize(across(everything(), list(mean = ~ mean(.x, na.rm = T),
                                       median = ~ median(.x, na.rm = T),
                                       sd = ~ sd(.x, na.rm = T),
