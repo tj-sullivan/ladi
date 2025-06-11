@@ -3113,26 +3113,23 @@ vertical-align: -.125em;
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(irr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="load-data" class="level1">
-<h1>Load data</h1>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> <span class="fu">read_spss</span>(<span class="st">&quot;data/LGBTQ-APPS 2.24.22 KB.sav&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<section id="load-data-not-shown-for-peer-review" class="level1">
+<h1>Load data [not shown for peer review]</h1>
 </section>
 <section id="calculate-iccs" class="level1">
 <h1>Calculate ICCs</h1>
 <p>First, make an overall variable for the average rating (early + mid) for each coder:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_means</span>(Early_Affirm_Coder1, Mid_Affirm_Coder1, <span class="at">n =</span> <span class="cn">Inf</span>, <span class="at">var =</span> <span class="st">&quot;Average_Affirm_Coder1&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_means</span>(Early_Affirm_Coder2, Mid_Affirm_Coder2, <span class="at">n =</span> <span class="cn">Inf</span>, <span class="at">var =</span> <span class="st">&quot;Average_Affirm_Coder2&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>apps <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_means</span>(Early_Affirm_Coder1, Mid_Affirm_Coder1, <span class="at">n =</span> <span class="cn">Inf</span>, <span class="at">var =</span> <span class="st">&quot;Average_Affirm_Coder1&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_means</span>(Early_Affirm_Coder2, Mid_Affirm_Coder2, <span class="at">n =</span> <span class="cn">Inf</span>, <span class="at">var =</span> <span class="st">&quot;Average_Affirm_Coder2&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The <code>irr</code> package was used to calculate ICCs. The first part of the code specifies the type of model, which here is set two “twoway” b/c the design is fully crossed, such that we have 20% of videos rated by all coders to compare for reliability – it would be oneway if not all coders rated all participants used for reliability. The second part specifies the type of analyses, which here is set to “agreement” b/c we want people to be closer in absolute value, whereas consistency will calculate this based on rank order. The third part specifies the unit, which here is set to “average” b/c we took the average ratings across coders. The last two options (r0) and conf.level are for null hypothesis significance testing.</p>
 <p>ICC for early sessions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Early_Affirm_Coder1, Early_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Early_Affirm_Coder1, Early_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Average Score Intraclass Correlation
 
@@ -3152,9 +3149,9 @@ vertical-align: -.125em;
 </div>
 <p>ICC for mid sessions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Mid_Affirm_Coder1, Mid_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Mid_Affirm_Coder1, Mid_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Average Score Intraclass Correlation
 
@@ -3174,9 +3171,9 @@ vertical-align: -.125em;
 </div>
 <p>ICC for average sessions:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Average_Affirm_Coder1, Average_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(apps, Average_Affirm_Coder1, Average_Affirm_Coder2) <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.matrix</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">icc</span>(<span class="fu">c</span>(<span class="st">&quot;twoway&quot;</span>), <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&quot;agreement&quot;</span>), <span class="at">unit =</span> <span class="fu">c</span>(<span class="st">&quot;average&quot;</span>), <span class="at">r0 =</span> <span class="dv">0</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> Average Score Intraclass Correlation
 
@@ -3198,143 +3195,143 @@ vertical-align: -.125em;
 <section id="wrangle-data-for-item-by-item-code" class="level1">
 <h1>Wrangle data for item-by-item code</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         Early_Session_Coder1_Affirm_Item1<span class="sc">:</span>Early_Session_Coder1_Affirm_Item10,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>         Early_Session_Coder2_Affirm_Item1<span class="sc">:</span>Early_Session_Coder2_Affirm_Item10,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>         Mid_Session_Coder1_Affirm_Item1<span class="sc">:</span>Mid_Session_Coder1_Affirm_Item10,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>         Mid_Session_Coder2_Affirm_Item1<span class="sc">:</span>Mid_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Early1_r1 =</span> Early_Session_Coder1_Affirm_Item1,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early2_r1 =</span> Early_Session_Coder1_Affirm_Item2,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early3_r1 =</span> Early_Session_Coder1_Affirm_Item3,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early4_r1 =</span> Early_Session_Coder1_Affirm_Item4,</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early5_r1 =</span> Early_Session_Coder1_Affirm_Item5,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early6_r1 =</span> Early_Session_Coder1_Affirm_Item6,</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early7_r1 =</span> Early_Session_Coder1_Affirm_Item7,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early8_r1 =</span> Early_Session_Coder1_Affirm_Item8,</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early9_r1 =</span> Early_Session_Coder1_Affirm_Item9,</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early10_r1 =</span> Early_Session_Coder1_Affirm_Item10) <span class="sc">|&gt;</span> </span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Early1_r2 =</span> Early_Session_Coder2_Affirm_Item1,</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early2_r2 =</span> Early_Session_Coder2_Affirm_Item2,</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early3_r2 =</span> Early_Session_Coder2_Affirm_Item3,</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early4_r2 =</span> Early_Session_Coder2_Affirm_Item4,</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early5_r2 =</span> Early_Session_Coder2_Affirm_Item5,</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early6_r2 =</span> Early_Session_Coder2_Affirm_Item6,</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early7_r2 =</span> Early_Session_Coder2_Affirm_Item7,</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early8_r2 =</span> Early_Session_Coder2_Affirm_Item8,</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early9_r2 =</span> Early_Session_Coder2_Affirm_Item9,</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early10_r2 =</span> Early_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Mid1_r1 =</span> Mid_Session_Coder1_Affirm_Item1,</span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid2_r1 =</span> Mid_Session_Coder1_Affirm_Item2,</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid3_r1 =</span> Mid_Session_Coder1_Affirm_Item3,</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid4_r1 =</span> Mid_Session_Coder1_Affirm_Item4,</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid5_r1 =</span> Mid_Session_Coder1_Affirm_Item5,</span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid6_r1 =</span> Mid_Session_Coder1_Affirm_Item6,</span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid7_r1 =</span> Mid_Session_Coder1_Affirm_Item7,</span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid8_r1 =</span> Mid_Session_Coder1_Affirm_Item8,</span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid9_r1 =</span> Mid_Session_Coder1_Affirm_Item9,</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid10_r1 =</span> Mid_Session_Coder1_Affirm_Item10) <span class="sc">|&gt;</span> </span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Mid1_r2 =</span> Mid_Session_Coder2_Affirm_Item1,</span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid2_r2 =</span> Mid_Session_Coder2_Affirm_Item2,</span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid3_r2 =</span> Mid_Session_Coder2_Affirm_Item3,</span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid4_r2 =</span> Mid_Session_Coder2_Affirm_Item4,</span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid5_r2 =</span> Mid_Session_Coder2_Affirm_Item5,</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid6_r2 =</span> Mid_Session_Coder2_Affirm_Item6,</span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid7_r2 =</span> Mid_Session_Coder2_Affirm_Item7,</span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid8_r2 =</span> Mid_Session_Coder2_Affirm_Item8,</span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid9_r2 =</span> Mid_Session_Coder2_Affirm_Item9,</span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid10_r2 =</span> Mid_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_labels</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_label</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_formats</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_widths</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> apps <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ParticipantID, </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         Early_Session_Coder1_Affirm_Item1<span class="sc">:</span>Early_Session_Coder1_Affirm_Item10,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>         Early_Session_Coder2_Affirm_Item1<span class="sc">:</span>Early_Session_Coder2_Affirm_Item10,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>         Mid_Session_Coder1_Affirm_Item1<span class="sc">:</span>Mid_Session_Coder1_Affirm_Item10,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>         Mid_Session_Coder2_Affirm_Item1<span class="sc">:</span>Mid_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Early1_r1 =</span> Early_Session_Coder1_Affirm_Item1,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early2_r1 =</span> Early_Session_Coder1_Affirm_Item2,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early3_r1 =</span> Early_Session_Coder1_Affirm_Item3,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early4_r1 =</span> Early_Session_Coder1_Affirm_Item4,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early5_r1 =</span> Early_Session_Coder1_Affirm_Item5,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early6_r1 =</span> Early_Session_Coder1_Affirm_Item6,</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early7_r1 =</span> Early_Session_Coder1_Affirm_Item7,</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early8_r1 =</span> Early_Session_Coder1_Affirm_Item8,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early9_r1 =</span> Early_Session_Coder1_Affirm_Item9,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early10_r1 =</span> Early_Session_Coder1_Affirm_Item10) <span class="sc">|&gt;</span> </span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Early1_r2 =</span> Early_Session_Coder2_Affirm_Item1,</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early2_r2 =</span> Early_Session_Coder2_Affirm_Item2,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early3_r2 =</span> Early_Session_Coder2_Affirm_Item3,</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early4_r2 =</span> Early_Session_Coder2_Affirm_Item4,</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early5_r2 =</span> Early_Session_Coder2_Affirm_Item5,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early6_r2 =</span> Early_Session_Coder2_Affirm_Item6,</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early7_r2 =</span> Early_Session_Coder2_Affirm_Item7,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early8_r2 =</span> Early_Session_Coder2_Affirm_Item8,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early9_r2 =</span> Early_Session_Coder2_Affirm_Item9,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">Early10_r2 =</span> Early_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Mid1_r1 =</span> Mid_Session_Coder1_Affirm_Item1,</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid2_r1 =</span> Mid_Session_Coder1_Affirm_Item2,</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid3_r1 =</span> Mid_Session_Coder1_Affirm_Item3,</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid4_r1 =</span> Mid_Session_Coder1_Affirm_Item4,</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid5_r1 =</span> Mid_Session_Coder1_Affirm_Item5,</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid6_r1 =</span> Mid_Session_Coder1_Affirm_Item6,</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid7_r1 =</span> Mid_Session_Coder1_Affirm_Item7,</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid8_r1 =</span> Mid_Session_Coder1_Affirm_Item8,</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid9_r1 =</span> Mid_Session_Coder1_Affirm_Item9,</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid10_r1 =</span> Mid_Session_Coder1_Affirm_Item10) <span class="sc">|&gt;</span> </span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Mid1_r2 =</span> Mid_Session_Coder2_Affirm_Item1,</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid2_r2 =</span> Mid_Session_Coder2_Affirm_Item2,</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid3_r2 =</span> Mid_Session_Coder2_Affirm_Item3,</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid4_r2 =</span> Mid_Session_Coder2_Affirm_Item4,</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid5_r2 =</span> Mid_Session_Coder2_Affirm_Item5,</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid6_r2 =</span> Mid_Session_Coder2_Affirm_Item6,</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid7_r2 =</span> Mid_Session_Coder2_Affirm_Item7,</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid8_r2 =</span> Mid_Session_Coder2_Affirm_Item8,</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid9_r2 =</span> Mid_Session_Coder2_Affirm_Item9,</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>         <span class="at">Mid10_r2 =</span> Mid_Session_Coder2_Affirm_Item10) <span class="sc">|&gt;</span> </span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_labels</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_label</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_formats</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">zap_widths</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="holley-guilfords-g-calculation" class="level1">
 <h1>Holley &amp; Guilford’s G calculation</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tell R which columns correspond to rater 1 and rater 2 respectively</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#grep is cool for pattern identification</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>rater1_cols <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="fu">names</span>(data), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#but make sure that column names are the same</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#because R is finding and replacing here</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>rater2_cols <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="st">&quot;_r2&quot;</span>, rater1_cols)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Guilford&#39;s G for each item with a loop</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>guilford_g <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>item_names <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="st">&quot;&quot;</span>, rater1_cols)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  agreements <span class="ot">&lt;-</span> <span class="fu">sum</span>(r1 <span class="sc">==</span> r2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  disagreements <span class="ot">&lt;-</span> <span class="fu">sum</span>(r1 <span class="sc">!=</span> r2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> ((agreements <span class="sc">+</span> disagreements) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    guilford_g[i] <span class="ot">&lt;-</span> ((agreements <span class="sc">/</span> (agreements <span class="sc">+</span> disagreements))<span class="sc">-</span><span class="fl">0.5</span>)<span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.5</span>)</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#using 0.5 here because 1-Pc, chance is (1/2) 0.5 with dichotomous vars</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    guilford_g[i] <span class="ot">&lt;-</span> <span class="cn">NA</span> <span class="co">#to avoid dividing by 0</span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tell R which columns correspond to rater 1 and rater 2 respectively</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#grep is cool for pattern identification</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>rater1_cols <span class="ot">&lt;-</span> <span class="fu">grep</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="fu">names</span>(data), <span class="at">value =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#but make sure that column names are the same</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">#because R is finding and replacing here</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>rater2_cols <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="st">&quot;_r2&quot;</span>, rater1_cols)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Guilford&#39;s G for each item with a loop</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>guilford_g <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>item_names <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;_r1$&quot;</span>, <span class="st">&quot;&quot;</span>, rater1_cols)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  agreements <span class="ot">&lt;-</span> <span class="fu">sum</span>(r1 <span class="sc">==</span> r2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  disagreements <span class="ot">&lt;-</span> <span class="fu">sum</span>(r1 <span class="sc">!=</span> r2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> ((agreements <span class="sc">+</span> disagreements) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    guilford_g[i] <span class="ot">&lt;-</span> ((agreements <span class="sc">/</span> (agreements <span class="sc">+</span> disagreements))<span class="sc">-</span><span class="fl">0.5</span>)<span class="sc">/</span>(<span class="dv">1</span><span class="fl">-0.5</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">#using 0.5 here because 1-Pc, chance is (1/2) 0.5 with dichotomous vars</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    guilford_g[i] <span class="ot">&lt;-</span> <span class="cn">NA</span> <span class="co">#to avoid dividing by 0</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="percent-agreement-on-presence-and-absence" class="level1">
 <h1>Percent agreement on presence and absence</h1>
 <p>Code created from calculations presented by Xu &amp; Lorber (2014)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ppos <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="fu">dim</span>(cts)) <span class="sc">!=</span> <span class="dv">4</span>){</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">1</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">2</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">2</span>] <span class="co"># represents count of agreement of presence</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">2</span>] <span class="co"># represents column-wise disagreement</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  c <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">1</span>] <span class="co"># represents row-wise disagreement</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">1</span>] <span class="co"># represents count of agreement on absence</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  ppos <span class="ot">&lt;-</span> (<span class="dv">2</span><span class="sc">*</span>a)<span class="sc">/</span>((a<span class="sc">+</span>b)<span class="sc">+</span>(a<span class="sc">+</span>c))</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(ppos)</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>pneg <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="fu">dim</span>(cts)) <span class="sc">!=</span> <span class="dv">4</span>){</span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">1</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">2</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">2</span>] <span class="co"># represents count of agreement of presence</span></span>
-<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">2</span>] <span class="co"># represents column-wise disagreement</span></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>  c <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">1</span>] <span class="co"># represents row-wise disagreement</span></span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">1</span>] <span class="co"># represents count of agreement on absence</span></span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>  pneg <span class="ot">&lt;-</span> (<span class="dv">2</span><span class="sc">*</span>d)<span class="sc">/</span>((b<span class="sc">+</span>d)<span class="sc">+</span>(c<span class="sc">+</span>d))</span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(pneg)</span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>ppos_df <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
-<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>  tb <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">cbind</span>(r1, r2))</span>
-<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>  ppos_df[i] <span class="ot">&lt;-</span> <span class="fu">ppos</span>(tb)</span>
-<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ppos <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="fu">dim</span>(cts)) <span class="sc">!=</span> <span class="dv">4</span>){</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">1</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">2</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">2</span>] <span class="co"># represents count of agreement of presence</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">2</span>] <span class="co"># represents column-wise disagreement</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  c <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">1</span>] <span class="co"># represents row-wise disagreement</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">1</span>] <span class="co"># represents count of agreement on absence</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  ppos <span class="ot">&lt;-</span> (<span class="dv">2</span><span class="sc">*</span>a)<span class="sc">/</span>((a<span class="sc">+</span>b)<span class="sc">+</span>(a<span class="sc">+</span>c))</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(ppos)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>pneg <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="fu">dim</span>(cts)) <span class="sc">!=</span> <span class="dv">4</span>){</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">1</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  df[,<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">factor</span>(df[,<span class="dv">2</span>], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>))</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>  cts <span class="ot">&lt;-</span> <span class="fu">table</span>(df)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  a <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">2</span>] <span class="co"># represents count of agreement of presence</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>  b <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">2</span>] <span class="co"># represents column-wise disagreement</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>  c <span class="ot">&lt;-</span> cts[<span class="dv">2</span>,<span class="dv">1</span>] <span class="co"># represents row-wise disagreement</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> cts[<span class="dv">1</span>,<span class="dv">1</span>] <span class="co"># represents count of agreement on absence</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  pneg <span class="ot">&lt;-</span> (<span class="dv">2</span><span class="sc">*</span>d)<span class="sc">/</span>((b<span class="sc">+</span>d)<span class="sc">+</span>(c<span class="sc">+</span>d))</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(pneg)</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>ppos_df <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  tb <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">cbind</span>(r1, r2))</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>  ppos_df[i] <span class="ot">&lt;-</span> <span class="fu">ppos</span>(tb)</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.5945946
 [1] 0.7692308
@@ -3357,15 +3354,15 @@ vertical-align: -.125em;
 [1] 0.5
 [1] 0</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pneg_df <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  tb <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">cbind</span>(r1, r2))</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  pneg_df[i] <span class="ot">&lt;-</span> <span class="fu">pneg</span>(tb)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pneg_df <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(rater1_cols))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(rater1_cols)) {</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  r1 <span class="ot">&lt;-</span> data[[rater1_cols[i]]]</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  r2 <span class="ot">&lt;-</span> data[[rater2_cols[i]]]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  tb <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">cbind</span>(r1, r2))</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  pneg_df[i] <span class="ot">&lt;-</span> <span class="fu">pneg</span>(tb)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.8051948
 [1] 0.8064516
@@ -3393,14 +3390,14 @@ vertical-align: -.125em;
 <section id="output" class="level1">
 <h1>Output</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Create and print summary table with Guilford&#39;s G for each item</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>g_table <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Item =</span> item_names,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Guilford_G =</span> <span class="fu">round</span>(guilford_g, <span class="dv">3</span>),</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ppos =</span> <span class="fu">round</span>(ppos_df, <span class="dv">4</span>),</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pneg =</span> <span class="fu">round</span>(pneg_df, <span class="dv">4</span>)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>g_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Create and print summary table with Guilford&#39;s G for each item</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>g_table <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Item =</span> item_names,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Guilford_G =</span> <span class="fu">round</span>(guilford_g, <span class="dv">3</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ppos =</span> <span class="fu">round</span>(ppos_df, <span class="dv">4</span>),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">pneg =</span> <span class="fu">round</span>(pneg_df, <span class="dv">4</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>g_table</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 20 × 4
    Item    Guilford_G  ppos  pneg
@@ -3429,9 +3426,9 @@ vertical-align: -.125em;
 </div>
 <p>Average G:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Average G: just averages across all 10 Gs above</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>average_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Average Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(average_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Average G: just averages across all 10 Gs above</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>average_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Average Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(average_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Average Guilford&#39;s G: 0.793 </code></pre>
@@ -3439,8 +3436,8 @@ Average Guilford&#39;s G: 0.793 </code></pre>
 </div>
 <p>Early G average:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>early_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">na.rm =</span> T)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Early Sessions Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(early_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>early_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">na.rm =</span> T)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Early Sessions Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(early_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Early Sessions Guilford&#39;s G: 0.818 </code></pre>
@@ -3448,8 +3445,8 @@ Early Sessions Guilford&#39;s G: 0.818 </code></pre>
 </div>
 <p>Mid G average:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>mid_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g[<span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>], <span class="at">na.rm =</span> T)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Mid Sessions Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(mid_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>mid_g <span class="ot">&lt;-</span> <span class="fu">mean</span>(guilford_g[<span class="dv">11</span><span class="sc">:</span><span class="dv">20</span>], <span class="at">na.rm =</span> T)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Mid Sessions Guilford&#39;s G:&quot;</span>, <span class="fu">round</span>(mid_g, <span class="dv">3</span>), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Mid Sessions Guilford&#39;s G: 0.768 </code></pre>
@@ -3457,13 +3454,13 @@ Mid Sessions Guilford&#39;s G: 0.768 </code></pre>
 </div>
 <p>Save to a .csv file:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(g_table, <span class="st">&quot;output/reliability.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(g_table, <span class="st">&quot;output/reliability.csv&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="session-info" class="level1">
 <h1>Session info</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.4.3 (2025-02-28 ucrt)
 Platform: x86_64-w64-mingw32/x64

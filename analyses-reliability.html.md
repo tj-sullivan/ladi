@@ -23,15 +23,10 @@ library(irr)
 
 
 
-# Load data
+# Load data [not shown for peer review]
 
 
-::: {.cell}
 
-```{.r .cell-code}
-apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
-```
-:::
 
 
 

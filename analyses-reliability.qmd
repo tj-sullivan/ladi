@@ -13,8 +13,8 @@ library(haven)
 library(irr)
 ```
 
-# Load data
-```{r}
+# Load data [not shown for peer review]
+```{r, include = F}
 apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
 ```
 

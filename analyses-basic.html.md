@@ -1,6 +1,5 @@
 ---
 title: "Data cleaning, descriptives, reliability, histograms, correlations"
-author: "TJ Sullivan"
 format: html
 keep-md: true 
 embed-resources: true
@@ -32,16 +31,11 @@ library(lmerTest)
 
 
 
-Load apps dataset, which contains LADI coding information and relevant variables
+Load apps dataset, which contains LADI coding information and relevant variables [code not displayed for peer review]
 
 
 
-::: {.cell}
 
-```{.r .cell-code}
-apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
-```
-:::
 
 
 
