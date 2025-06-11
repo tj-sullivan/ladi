@@ -1,6 +1,7 @@
 ---
 title: "LADI Validity Analyses"
-format: gfm
+format: html
+keep-md: true 
 ---
 
 # Load packages and data

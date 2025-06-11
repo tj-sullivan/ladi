@@ -1,7 +1,8 @@
 ---
 title: "Data cleaning, descriptives, reliability, histograms, correlations"
 author: "TJ Sullivan"
-format: gfm
+format: html
+keep-md: true 
 ---
 
 ```{r setup, include = F}
