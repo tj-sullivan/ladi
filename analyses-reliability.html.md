@@ -2,6 +2,7 @@
 title: "Reliability Analyses"
 format: html
 keep-md: true 
+embed-resources: true
 ---
 
 

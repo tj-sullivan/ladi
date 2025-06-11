@@ -3,6 +3,7 @@ title: "Data cleaning, descriptives, reliability, histograms, correlations"
 author: "TJ Sullivan"
 format: html
 keep-md: true 
+embed-resources: true
 ---
 
 ```{r setup, include = F}
