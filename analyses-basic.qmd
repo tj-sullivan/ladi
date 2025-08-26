@@ -202,7 +202,7 @@ rm(ladi)
 
 # Centering variables
 
-For outcome analyses, we can have assessment be centered around the post-treatment outcome scores. This would mean that the intercept would reflect the mean outcome variable score post-treatment/at 4MFU. The LADI predictor variable would then signify the association b/t affirmative technique and post-treatment outcome scores while accounting for change in outcomes over the 12-month follow-up period.
+For outcome analyses, we should center assessment around the post-treatment outcome scores. This would mean that the intercept would reflect the mean outcome variable score post-treatment/at 4MFU. 
 
 ```{r}
 apps_outcome <- mutate(apps_outcome,
