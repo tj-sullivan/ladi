@@ -80,9 +80,14 @@ We'll handle missing data with multiple imputation via the `mice` package with 2
 #| message: false
 #| warning: false 
 
+# add in centering variables for follow-up analyses below 
+apps_outcome <- apps_outcome |>  
+  mutate(Assessment_c_8m = Assessment - 2,
+         Assessment_c_12m = Assessment - 3) 
+
 imp_df <- apps_outcome |> 
   mutate(Assessment_quad = Assessment*Assessment) |> 
-  select(ParticipantID, Assessment, Assessment_quad, Assessment_c, Assessment_c_quad, Site, CMHT, MHgen, Medication, WAI_avg_c, Sx_totalacts_sum_c, Average_Affirm, Average_Affirm_c, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) 
+  select(ParticipantID, Assessment, Assessment_quad, Assessment_c, Assessment_c_quad, Assessment_c_8m, Assessment_c_12m, Site, CMHT, MHgen, Medication, WAI_avg_c, Sx_totalacts_sum_c, Average_Affirm, Average_Affirm_c, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) 
 
 # run the mice code with 0 iterations to get the predictorMatrix and methods of imputation
 imp <- mice(imp_df, seed = 808, maxit = 0)
@@ -155,7 +160,7 @@ o3
 
 ```{r}
 m4_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(HAMD_sum ~ I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -189,21 +194,19 @@ Create a manual version of the `plot_predictions` function from `marginaleffects
 
 ```{r}
 dg <- apps_outcome |> 
-  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c) 
+  select(ParticipantID, Assessment_c, Average_Affirm_c) 
 
-predictions <- predictions(m4_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
-)
+predictions <- predictions(m4_hamd, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
-ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
-  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
-  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', 'Post-Treatment (4-Month Follow-up)')) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline', '4-Month \nPost-Baseline', '8-Month \nPost-Baseline', '12-Month \nPost-Baseline')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(x = "Assessment", y = "Depressive Symptoms") +
-  theme_classic()  +
-  ylim(10, 18)
+  labs(x = "Time Point", y = "Depressive Symptoms") +
+  theme_classic()  
 ```
 
 As all values of the LADI are significant, we are not going to create a J-N type plot that delineates when the slope moves from significant to not significant for this outcome.
@@ -248,7 +251,7 @@ o6
 
 ```{r}
 m7_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(IHS_mean ~ I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -279,19 +282,20 @@ avg_slopes(m7_ihs, variables = "Assessment_c", by = "Average_Affirm_c", newdata 
 Simple slopes plot:
 
 ```{r}
-predictions <- predictions(m7_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
-)
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Average_Affirm_c) 
 
-ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
-  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+predictions <- predictions(m7_ihs, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
+
+ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
-  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', 'Post-Treatment (4-Month Follow-up)')) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline', '4-Month \nPost-Baseline', '8-Month \nPost-Baseline', '12-Month \nPost-Baseline')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(x = "Assessment", y = "Internalized Stigma") +
-  theme_classic()  +
-  ylim(1.25, 2.25)
+  labs(x = "Time Point", y = "Internalized Heterosexism") +
+  theme_classic()  
 ```
 
 ## RS
@@ -388,7 +392,7 @@ o2.2
 
 ```{r}
 m3.2_sip <- with(imp, 
-               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = poisson,
                      corstr = "ar1")) 
@@ -420,20 +424,19 @@ Create a manual version of the `plot_predictions` function from `marginaleffects
 
 ```{r}
 dg <- apps_outcome |> 
-  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
+  select(ParticipantID, Assessment_c, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
 
-predictions <- predictions(m3.2_sip, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), Site = "NYC", CMHT = "No or no data", MHgen = "No or no data", Medication = "No or no data", newdata = dg)
-)
+predictions <- predictions(m3.2_sip, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
-fig_sip_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
-  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+fig_sip_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
-  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(title = "Panel A", x = "Assessment", y = "Substance Use Consequences") +
-  theme_classic() 
+  labs(title = "Panel A", x = "Time Point", y = "Substance Use Consequences") +
+  theme_classic()  
 #+
   # code below puts the "Panel A" in the plot since this is surprisingly complicated
 #  labs(tag = "Panel A",
@@ -448,7 +451,7 @@ fig_sip_cov
 
 ```{r}
 m4.2_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -480,21 +483,19 @@ Create a manual version of the `plot_predictions` function from `marginaleffects
 
 ```{r}
 dg <- apps_outcome |> 
-  select(ParticipantID, Assessment_c, Assessment_c_quad, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
+  select(ParticipantID, Assessment_c, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
 
-predictions <- predictions(m4.2_hamd, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), Site = "NYC", CMHT = "No or no data", MHgen = "No or no data", Medication = "No or no data", newdata = dg)
-)
+predictions <- predictions(m4.2_hamd, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
-fig_hamd_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
-  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+fig_hamd_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
-  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(title = "Panel B", x = "Assessment", y = "Depressive Symptoms") +
-  theme_classic()  +
-  ylim(10, 18) 
+  labs(title = "Panel B", x = "Time Point", y = "Depressive Symptoms") +
+  theme_classic()  
 
 fig_hamd_cov
 ```
@@ -539,7 +540,7 @@ o6.2
 
 ```{r}
 m7.2_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -570,19 +571,21 @@ avg_slopes(m7.2_ihs, variables = "Assessment_c", by = "Average_Affirm_c", newdat
 Simple slopes plot:
 
 ```{r}
-predictions <- predictions(m7.2_ihs, condition = c("Assessment_c", "Average_Affirm_c"), datagrid(ParticipantID = unique, Assessment_c = c(-1, 0), Assessment_c_quad = 0, Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg)
-)
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
 
-fig_ihs_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c), linetype = as.factor(Average_Affirm_c))) +
-  geom_line(aes(linetype = as.factor(Average_Affirm_c))) +
+predictions <- predictions(m7.2_ihs, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
+
+fig_ihs_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
-  scale_x_continuous(breaks = c(-1, 0), labels = c('Baseline', '4M')) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(title = "Panel C", x = "Assessment", y = "Internalized Heterosexism") +
-  theme_classic()  +
-  ylim(1.25, 2.25) 
+  labs(title = "Panel C", x = "Time Point", y = "Internalized Heterosexism") +
+  theme_classic()  
+
 fig_ihs_cov 
 ```
 
@@ -734,6 +737,137 @@ o9.3 <- pool(m9.3_soc) |>
 o9.3
 ```
 
+# Follow-up analyses: 8-month and 12-month centering 
+
+To explore persistence of effects, we also re-ran the models for substance use consequences, depressive symptoms, and internalized heterosexism where we re-centered the assessment time point. 
+
+```{r}
+m4.6_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment^2) + Average_Affirm_c + Assessment*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.6 <- pool(m4.6_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
+
+o4.6
+```
+
+
+## 8-month centering
+
+### SIP
+```{r}
+m3.4_sip <- with(imp, 
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+
+o3.4 <- pool(m3.4_sip) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIP_cov") |> relocate(variable, 1)
+
+o3.4
+```
+
+### HAMD
+```{r}
+m4.4_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.4 <- pool(m4.4_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
+
+o4.4
+```
+
+
+### IHS
+```{r}
+m7.4_ihs <- with(imp, 
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o7.4 <- pool(m7.4_ihs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "IHS_cov") |> relocate(variable, 1)
+
+o7.4
+```
+
+## 12-month centering 
+
+
+### SIP
+```{r}
+m3.5_sip <- with(imp, 
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+
+o3.5 <- pool(m3.5_sip) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIP_cov") |> relocate(variable, 1)
+
+o3.5
+```
+
+### HAMD
+```{r}
+m4.5_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.5 <- pool(m4.5_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
+
+o4.5
+```
+
+
+### IHS
+```{r}
+m7.5_ihs <- with(imp, 
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o7.5 <- pool(m7.5_ihs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "IHS_cov") |> relocate(variable, 1)
+
+o7.5
+```
+
+
 # Output for reporting
 
 ## Tables
@@ -792,11 +926,18 @@ Created combined plot:
 ```{r}
 combined <- ggarrange(fig_sip_cov, fig_hamd_cov, fig_ihs_cov, ncol = 3, common.legend = TRUE, legend = "right")
 combined
+
+combined <- ggarrange(
+  fig_sip_cov, NULL, fig_hamd_cov, NULL, fig_ihs_cov,
+  nrow = 1, widths = c(1, 0.05, 1, 0.05, 1), common.legend = TRUE,
+  legend = "right"
+  )
+combined
 ```
 
 Save combined plot: 
 ```{r}
-ggsave(combined, filename = "output/interaction_figure.png", device = "png", width = 8, height = 3, dpi = 300) # note: width and height are in inches
+ggsave(combined, filename = "output/interaction_figure.png", device = "png", width = 8, height = 3, units = "in", dpi = 300) # note: width and height are in inches
 ```
 
 # Session info
