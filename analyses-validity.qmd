@@ -48,13 +48,13 @@ Resources for GEEs: https://library.virginia.edu/data/articles/getting-started-w
 
 -   [**Intercept**:]{.underline} Expected value of the outcome at post-intervention, which is the first follow-up appointment. This is *NOT* baseline because of the way that we opted to center assessment so the intercept is interpetable as post-intervention symptoms.
 
--   [**Assessment_c**:]{.underline} Instantaneous rate of change at post-intervention. This is the expected linear slope of change at post-intervention (much like pre-post change, except it's an estimate that accounts for the entire trajectory). Because we are modeling nonlinear change, the slope is dependent on the timepoint. There are different slopes for 4MFU (post-intervention), 8MFU, and 12MFU that reflects the initial change and then leveling out of that change.
+-   [**Assessment_c**:]{.underline} Constant rate of change over time. Because we are modeling nonlinear change, this slope estimate is dependent on the timepoint. There are different slopes for 4MFU (post-intervention), 8MFU, and 12MFU. 
 
 -   [**Assessment_c_quad**]{.underline}: Curvature of change overall. A positive number means the curve is a smiley face (turns upward) and a negative number means the curve is a frowney face (turns downward).
 
 -   [**Average_c_affirm**]{.underline}: Association between affirmative technique and mean outcome score assessed at post-intervention. This reflects mean levels, *NOT* change over time.
 
--   [**Average_c_affirm\*Assessment_c:**]{.underline} Interaction between affirmative technique and the instantaneous rate of change at post-intervention. In other words, this term tests whether rates of change are different across levels of affirmative techniques. If significant, this needs to be probed to plot the expected slopes across levels of affirmative technique to see whether change strengthens or weakens as a function of the LGBTQ-APPS.
+-   [**Average_c_affirm\*Assessment_c:**]{.underline} Interaction between affirmative technique and the constant rate of change over time. In other words, this term tests whether rates of change are different across levels of affirmative techniques. If significant, this needs to be probed to plot the expected slopes across levels of affirmative technique to see whether change strengthens or weakens as a function of the LGBTQ-APPS. Note: this coefficient is NOT sensitive to centering. 
 
 *Interpreting interactions:*
 

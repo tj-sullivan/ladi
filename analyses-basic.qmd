@@ -23,6 +23,7 @@ library(psych)
 library(gridExtra)
 library(lme4)
 library(lmerTest)
+library(broom)
 ```
 
 Load apps dataset, which contains LADI coding information and relevant variables [code not displayed for peer review]
@@ -31,9 +32,9 @@ Load apps dataset, which contains LADI coding information and relevant variables
 apps <- read_spss("data/LGBTQ-APPS 2.24.22 KB.sav")
 ```
 
-Load full dataset to use for reporting demographics, calculating reliability, and pulling variables not included in prior apps dataset when initially requested.
+Load full dataset to use for reporting demographics, calculating reliability, and pulling variables not included in prior apps dataset when initially requested. [code not displayed for peer review]
 
-```{r load full dataset}
+```{r load full dataset, include = F}
 full <- read_spss("data/ESTEEM All Data Merged_updated 3.2.21_with_comorbidity_RB.sav")
 ```
 
@@ -41,7 +42,12 @@ Reduce full dataset to the n=57 people who had coded data for this study.
 
 ```{r reduce full dataset}
 id <- select(apps, ParticipantID)
+# create a variable denoting who was included in this study vs not for descriptive comparisons, put in new dataframe 
+comp <- full |> 
+  mutate(analytic_yn = if_else(ParticipantID %in% id$ParticipantID, T, F))
+
 full <- id |> left_join(full, by = "ParticipantID")
+
 rm(id)
 ```
 
@@ -135,9 +141,68 @@ apps_outcome <- apps |>
 
 Thus `apps_outcome` is the data frame for all analyses down below.
 
+# Analytic vs. full community-based sample comparisons in outcomes 
+
+```{r}
+# first, select only the relevant variables here
+comp <- comp |> 
+  select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
+  # select only the other community participants & BL assessment 
+  filter(Condition == 2, Assessment == 0) 
+
+# create a function to run the comparison for all the outcomes at once
+output <- comp %>% 
+  select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
+  # select only the other community participants & BL assessment 
+  filter(Condition == 2, Assessment == 0) |> 
+  select(ParticipantID, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, analytic_yn) %>% 
+  pivot_longer(c(Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm),
+               names_to = "variable",
+               values_to = "outcome") %>% 
+  mutate(variable = as.factor(variable)) %>% 
+  group_by(variable) %>% 
+  group_split() %>% 
+  map_dfr(.f = function(df) {
+    lm(outcome ~ 1 + analytic_yn, data = df) %>% 
+      tidy() %>% 
+      add_column(variable = unique(df$variable), .before = 1)
+  })
+
+# display output 
+output |> 
+  # round p-values
+  mutate_if(is.numeric, round, digits = 3) |> 
+  # for ease here, remove the intercept b/c we don't need this 
+  filter(term == "analytic_ynTRUE")
+
+# remove to clean up environment
+rm(output)
+```
+
+# Early & mid session comparison
+
+```{r}
+# separate out variable & take first observation so data is no longer in long format - ladi scores did not vary by timepoint
+ladi <- apps_outcome |> 
+  select(ParticipantID, Early_Affirm, Mid_Affirm) |> 
+  group_by(ParticipantID) |> 
+  slice_head() |> 
+  ungroup()
+
+t.test(ladi$Early_Affirm, ladi$Mid_Affirm, paired = T)
+
+# report statistics:
+ladi |> 
+  select(-ParticipantID) |> 
+  describe()
+
+# remove ladi dataframe from environment
+rm(ladi)
+```
+
 # Centering variables
 
-For outcome analyses, we can have assessment be centered around the post-treatment outcome scores. This would mean that the intercept would reflect the mean outcome variable score post-treatment/at 4MFU. The LADI predictor variable would then signify the association b/t affirmative technique and post-treatment outcome scores while accounting for change in outcomes over the 12-month follow-up period.
+For outcome analyses, we should center assessment around the post-treatment outcome scores. This would mean that the intercept would reflect the mean outcome variable score post-treatment/at 4MFU. 
 
 ```{r}
 apps_outcome <- mutate(apps_outcome,
@@ -797,6 +862,24 @@ corr_results <- correlation(data = apps_outcome,
   summary(redundant = T) 
 corr_results
 ```
+
+Specifically for the WAI & LADI:
+```{r}
+# since only 1 score for alliance and LADI, reduce dataset to n=57
+ladi <- apps_outcome |> 
+  group_by(ParticipantID) |> 
+  slice_head() |> 
+  ungroup() |> 
+  select(ParticipantID, contains("affirm"), contains("WAI"))
+
+cor.test(ladi$WAI_early, ladi$Early_Affirm) 
+cor.test(ladi$WAI_mid, ladi$Mid_Affirm) 
+cor.test(ladi$WAI_avg, ladi$Average_Affirm)
+
+# clean up environment
+rm(ladi)
+```
+
 
 # ICCs
 
