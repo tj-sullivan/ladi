@@ -104,54 +104,78 @@ imp <- mice(imp_df, seed = 808, maxit = 20, method = meth, print = F)
 
 # Linear vs. quadratic change trajectories
 
-To address reviewer concern about quadratic trajectory - note can't accommodate MI. 
+Preliminary inspection of the change trajectories with raw data suggested that most outcomes exhibited quadratic vs. linear change. However, here we formally test this. In a GEE framework, this can be done with the Quasi-Likelihood Information Criteria (QIC; McNeish et al., 2017; Pan, 2001), which is analogous to the Akaike and Bayesian Information Criteria where lower values = better fit. Of note, these tests of model fit are done only on the complete data because the function to calculate QIC have not been adapted for multiple imputation. 
 
+TLFB - quadratic change is better fit. 
 ```{r}
 m0.1a_tlfb <- geeglm(Sx_CASriskacts ~ Assessment_c, id = ParticipantID, family = poisson, corstr = "ar1", data = apps_outcome)
 
 m0.1b_tlfb <- geeglm(Sx_CASriskacts ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = poisson, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.1a_tlfb, m0.1b_tlfb) # pref for linear
+geepack::QIC(m0.1a_tlfb, m0.1b_tlfb) # pref for quad
+```
 
+AUDIT - no diff so linear is better fit. 
+```{r}
 m0.2a_audit <- geeglm(AUDIT_sum ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_audit <- geeglm(AUDIT_sum ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_audit, m0.2b_audit) # virtually identical
+geepack::QIC(m0.2a_audit, m0.2b_audit) # virtually identical - within .13
+```
 
+SIP - no diff so linear is better fit. 
+```{r}
 m0.2a_sip <- geeglm(SIP_sum ~ Assessment_c, id = ParticipantID, family = poisson, corstr = "ar1", data = apps_outcome)
 m0.2b_sip <- geeglm(SIP_sum ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = poisson, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_sip, m0.2b_sip) # virtually identical 
+geepack::QIC(m0.2a_sip, m0.2b_sip) # virtually identical - slight pref for linear
+```
 
+HAMD - quad is better fit. 
+```{r}
 m0.2a_hamd <- geeglm(HAMD_sum ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_hamd <- geeglm(HAMD_sum ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_hamd, m0.2b_hamd) # pref for quad 
+geepack::QIC(m0.2a_hamd, m0.2b_hamd) # pref for quad
+```
 
+BAI - quad is better fit.
+```{r}
 m0.2a_bai <- geeglm(BAI_sum ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_bai <- geeglm(BAI_sum ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_bai, m0.2b_bai) # pref for quad 
+geepack::QIC(m0.2a_bai, m0.2b_bai) # pref for quad
+```
 
+SIDAS - quad is better fit. 
+```{r}
 m0.2a_sidas <- geeglm(SIDAS_sum ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_sidas <- geeglm(SIDAS_sum ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 geepack::QIC(m0.2a_sidas, m0.2b_sidas) # pref for quad
+```
 
+IHS - no diff so linear is better fit. 
+```{r}
 m0.2a_ihs <- geeglm(IHS_mean ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_ihs<- geeglm(IHS_mean ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_ihs, m0.2b_ihs) # virtually identical 
+geepack::QIC(m0.2a_ihs, m0.2b_ihs) # virtually identical - within .20
+```
 
+RS - quad is beter fit. 
+```{r}
 m0.2a_rs <- geeglm(RS_mean ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 m0.2b_rs <- geeglm(RS_mean ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
 geepack::QIC(m0.2a_rs, m0.2b_rs) # pref for quad
-
-m0.2a_soc <- geeglm(SOC_concealment_mean ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-m0.2b_soc <- geeglm(SOC_concealment_mean ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_soc, m0.2b_soc) # virtually identical 
-
-m0.2a_lgbis <- geeglm(LGBIS_identaffirm ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-m0.2b_lgbis <- geeglm(LGBIS_identaffirm ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
-geepack::QIC(m0.2a_lgbis, m0.2b_lgbis) # virtually identical 
 ```
 
+SOC - no diff so linear is better fit. 
+```{r}
+m0.2a_soc <- geeglm(SOC_concealment_mean ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
+m0.2b_soc <- geeglm(SOC_concealment_mean ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
+geepack::QIC(m0.2a_soc, m0.2b_soc) # virtually identical - no pref either way within .22
+```
 
-
-
+LGBIS - no diff so linear is better fit. 
+```{r}
+m0.2a_lgbis <- geeglm(LGBIS_identaffirm ~ Assessment_c, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
+m0.2b_lgbis <- geeglm(LGBIS_identaffirm ~ Assessment_c + Assessment_c_quad, id = ParticipantID, family = gaussian, corstr = "ar1", data = apps_outcome)
+geepack::QIC(m0.2a_lgbis, m0.2b_lgbis) # virtually identical - slight pref for linear
+```
 
 # Unadjusted models
 
@@ -996,6 +1020,49 @@ ggsave(combined, filename = "output/interaction_figure.png", device = "png", wid
 ```{r}
 sessionInfo()
 ```
+
+# REVISION SENSITIVITY ANALYSES:
+
+## TLFB therapist effects
+
+```{r}
+m1.2_tlfb <- with(imp, 
+               geeglm(Sx_CASriskacts ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Sx_totalacts_sum_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+o1.2 <- pool(m1.2_tlfb) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "TLFB.cov") |> relocate(variable, 1)
+o1.2
+
+library(lme4)
+library(lmerTest)
+
+# unadjusted model: 
+s1 <- glmer(Sx_CASriskacts ~ scale(Sx_totalacts_sum_c) + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + (1 | ParticipantID),
+      data = apps_outcome,
+      family = poisson)
+summary(s1) 
+
+# with covariates:
+
+# does not converge: 
+#s1 <- glmer(Sx_CASriskacts ~ Site + CMHT + MHgen + Medication + WAI_avg_c + scale(Sx_totalacts_sum_c) + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + (1 | ParticipantID) + (1 | TherapistID),
+#      data = apps_outcome,
+#      family = poisson)
+
+# so, only kept total sex acts & WAI as covariates here: 
+s1 <- glmer(Sx_CASriskacts ~ scale(Sx_totalacts_sum_c) + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + (1 | ParticipantID) + (1 | TherapistID),
+     data = apps_outcome,
+     family = poisson)
+summary(s1) 
+```
+
+
+
 
 ```{r possible other codes for plots}
 #| eval: false
