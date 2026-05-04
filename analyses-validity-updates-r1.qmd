@@ -199,7 +199,7 @@ o1
 
 ```{r}
 m2_audit <- with(imp, 
-               geeglm(AUDIT_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(AUDIT_sum ~ Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -217,7 +217,7 @@ o2
 
 ```{r}
 m3_sip <- with(imp, 
-               geeglm(SIP_sum ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SIP_sum ~ Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = poisson,
                      corstr = "ar1")) 
@@ -326,7 +326,7 @@ o6
 
 ```{r}
 m7_ihs <- with(imp, 
-               geeglm(IHS_mean ~ I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(IHS_mean ~ Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -395,7 +395,7 @@ o8
 
 ```{r}
 m9_soc <- with(imp, 
-               geeglm(SOC_concealment_mean ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SOC_concealment_mean ~ Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -413,7 +413,7 @@ o9
 
 ```{r}
 m10_lgbis <- with(imp, 
-               geeglm(LGBIS_identaffirm ~ Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(LGBIS_identaffirm ~ Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -449,7 +449,7 @@ o1.2
 
 ```{r}
 m2.2_audit <- with(imp, 
-               geeglm(AUDIT_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(AUDIT_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -467,7 +467,7 @@ o2.2
 
 ```{r}
 m3.2_sip <- with(imp, 
-               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = poisson,
                      corstr = "ar1")) 
@@ -504,7 +504,7 @@ dg <- apps_outcome |>
 predictions <- predictions(m3.2_sip, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
 fig_sip_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
+  geom_smooth(method = "lm", se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
@@ -615,7 +615,7 @@ o6.2
 
 ```{r}
 m7.2_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -652,7 +652,7 @@ dg <- apps_outcome |>
 predictions <- predictions(m7.2_ihs, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
 fig_ihs_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
-  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
+  geom_smooth(method = "lm", se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
@@ -686,7 +686,7 @@ o8.2
 
 ```{r}
 m9.2_soc <- with(imp, 
-               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -704,7 +704,7 @@ o9.2
 
 ```{r}
 m10.2_lgbis <- with(imp, 
-               geeglm(LGBIS_identaffirm ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(LGBIS_identaffirm ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -780,7 +780,7 @@ o4.3
 
 ```{r}
 m7.3_ihs <- with(imp_sens, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -798,7 +798,7 @@ o7.3
 
 ```{r}
 m9.3_soc <- with(imp_sens, 
-               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c,
+               geeglm(SOC_concealment_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Average_Affirm_c + Assessment_c*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -838,7 +838,7 @@ o4.6
 ### SIP
 ```{r}
 m3.4_sip <- with(imp, 
-               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
+               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_8m + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
                      id = ParticipantID,
                      family = poisson,
                      corstr = "ar1")) 
@@ -873,7 +873,7 @@ o4.4
 ### IHS
 ```{r}
 m7.4_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_8m + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -910,7 +910,7 @@ o3.5
 ### HAMD
 ```{r}
 m4.5_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_12m + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -928,7 +928,7 @@ o4.5
 ### IHS
 ```{r}
 m7.5_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
+               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_12m + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
                      id = ParticipantID,
                      family = gaussian,
                      corstr = "ar1")) 
@@ -1060,8 +1060,131 @@ s1 <- glmer(Sx_CASriskacts ~ scale(Sx_totalacts_sum_c) + WAI_avg_c + Assessment_
      family = poisson)
 summary(s1) 
 ```
+## Interaction with quadratic term
+
+### TLFB
+
+```{r}
+m1.4_tlfb <- with(imp, 
+               geeglm(Sx_CASriskacts ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Sx_totalacts_sum_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + Assessment_c_quad*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = poisson,
+                     corstr = "ar1")) 
+o1.4 <- pool(m1.4_tlfb) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "TLFB.cov") |> relocate(variable, 1)
+o1.4
+```
+
+### HAMD
+
+```{r}
+m4.4_hamd <- with(imp, 
+               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c + I(Assessment_c^2)*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o4.4 <- pool(m4.4_hamd) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
+
+o4.4
+```
+
+### BAI
+
+```{r}
+m5.4_bai <- with(imp, 
+               geeglm(BAI_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c^2) + Average_Affirm_c + Assessment_c*Average_Affirm_c + I(Assessment_c^2)*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o5.4 <- pool(m5.4_bai) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "BAI_cov") |> relocate(variable, 1)
+
+o5.4
+```
+
+#### INTERACTION PROBING - TO DO 
+
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
+
+```{r}
+avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c")
+```
+
+Get simple slopes at +/- SD (1.20):
+
+```{r}
+avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
+```
+
+Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes & the instantaneous rate of change from pre-post treatment as this was the effect of interest.
+
+```{r}
+dg <- apps_outcome |> 
+  select(ParticipantID, Assessment_c, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
+
+predictions <- predictions(m4.2_hamd, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
+
+fig_hamd_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
+  scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
+  scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
+  scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
+  labs(title = "Panel B", x = "Time Point", y = "Depressive Symptoms") +
+  theme_classic()  
+
+fig_hamd_cov
+```
 
 
+### SIDAS
+
+```{r}
+m6.4_sidascont <- with(imp, 
+               geeglm(SIDAS_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + Assessment_c_quad*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o6.4 <- pool(m6.4_sidascont) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "SIDAS_cont_cov") |> relocate(variable, 1)
+
+o6.4
+```
+
+### RS 
+
+```{r}
+m8.4_rs <- with(imp, 
+               geeglm(RS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c + Assessment_c_quad + Average_Affirm_c + Assessment_c*Average_Affirm_c + Assessment_c_quad*Average_Affirm_c,
+                     id = ParticipantID,
+                     family = gaussian,
+                     corstr = "ar1")) 
+
+o8.4 <- pool(m8.4_rs) |> 
+  summary() |> 
+  as.data.frame() |> 
+  mutate_if(is.numeric, round, digits = 3) |> 
+  mutate(variable = "RS_cov") |> relocate(variable, 1)
+
+o8.4
+```
 
 
 ```{r possible other codes for plots}
