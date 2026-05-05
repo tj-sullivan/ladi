@@ -1119,6 +1119,12 @@ o5.4
 Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
 
 ```{r}
+slopes(m5.4_bai, variables = "Assessment_c", newdata = datagrid(Assessment_c = c(0, 1, 4)))
+
+slopes(m5.4_bai, variables = "Average_Affirm_c", newdata = datagrid(apps = c(-1.2, 0, 1.2), Assessment_c = c(0, 1, 2, 3))) 
+
+avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 0, 1.2), Assessment_c = c(0, 1, 2, 3)))
+
 avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c")
 ```
 
@@ -1134,19 +1140,19 @@ Create a manual version of the `plot_predictions` function from `marginaleffects
 dg <- apps_outcome |> 
   select(ParticipantID, Assessment_c, Average_Affirm_c, Site, CMHT, MHgen, Medication, WAI_avg_c) 
 
-predictions <- predictions(m4.2_hamd, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
+predictions <- predictions(m5.4_bai, datagrid(ParticipantID = unique, Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.20, 0, 1.20), newdata = dg))
 
-fig_hamd_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
+fig_bai_cov <- ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Average_Affirm_c) , linetype = as.factor(Average_Affirm_c))) +
   geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = F, linewidth = 0.7) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = as.factor(Average_Affirm_c)), alpha = 0.1, color = NA) +
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c('Baseline\n(BL)', '4-Month \nPost-BL', '8-Month \nPost-BL', '12-Month \nPost-BL')) +
   scale_color_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) +
   scale_fill_viridis_d(name = "LADI", labels = c("-1 SD", "Mean", "+ 1 SD")) + 
   scale_linetype_manual(name = "LADI", values = c("solid", "dotted", "dashed"), labels = c("-1 SD", "Mean", "+ 1 SD")) +
-  labs(title = "Panel B", x = "Time Point", y = "Depressive Symptoms") +
+  labs(title = "Panel X", x = "Time Point", y = "Anxiety Symptoms") +
   theme_classic()  
 
-fig_hamd_cov
+fig_bai_cov
 ```
 
 
