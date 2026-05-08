@@ -755,6 +755,16 @@ imp_df_sens <- apps_outcome |>
   filter(ParticipantID != 3115) |> 
   select(ParticipantID, Assessment, Assessment_quad, Assessment_c, Assessment_c_quad, Site, CMHT, MHgen, Medication, WAI_avg_c, Sx_totalacts_sum_c, Average_Affirm, Average_Affirm_c, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, SIDAS_yn, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) 
 
+# run the mice code with 0 iterations to get the predictorMatrix and methods of imputation
+imp <- mice(imp_df_sens, seed = 808, maxit = 0)
+predM <- imp$predictorMatrix
+meth <- imp$method
+
+# change imputation model method for dichotomous SIDAS since coded as numeric  
+log <- c("SIDAS_yn")
+meth[log] <- "logreg"
+meth
+
 imp_sens <- mice(imp_df_sens, seed = 808, maxit = 20, method = meth, print = F)
 ```
 
