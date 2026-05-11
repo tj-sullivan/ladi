@@ -1,0 +1,104 @@
+---
+title: "Therapist Demographic Information"
+format: html
+---
+
+# Load packages and data
+
+```{r load packages, warning = F, message = F}
+library(tidyverse)
+library(sjmisc)
+library(haven)
+library(easystats)
+library(purrr)
+library(psych)
+```
+
+# Load data
+
+Data for this project:
+```{r}
+apps_outcome <- readRDS("data/apps_outcome.rds") 
+
+t_ids <- apps_outcome |> 
+  distinct(TherapistID, Site) 
+```
+
+Therapist data:
+```{r}
+# downloaded raw SPSS datafile direclty from Qualtrics - not linked in file path because it contains identifiable information and is only stored on lab computers 
+raw <- read_spss(file.choose()) |> 
+  select(-StartDate:-RecordedDate, -ExternalReference:-UserLanguage, everything())
+
+# given the above, manually matched therapist ids with the response IDs via therapist initials 
+raw <- raw |> 
+  mutate(TherapistID = case_when(ResponseId == "R_1gnCGUhdi3cCrdT" ~	7,
+                                 ResponseId == "R_1Gv3GQSrjlGnr8l" ~	13,
+                                 ResponseId == "R_1HiSHq2UHfbQctO"	~ 15,
+                                 ResponseId == "R_1jjt7t1L4rw2uWX"	~ 17,
+                                 ResponseId == "R_1pWhRnPdAiYbgU5"	~ 1,
+                                 ResponseId == "R_2pXAkGPgQHFqCz7"	~ 20,
+                                 ResponseId == "R_2qmeJIIUQtSPyo5"	~ 10,
+                                 ResponseId == "R_2R3xILzHsw2uZa2"	~ 3,
+                                 ResponseId == "R_2sYGCXtY8WVsaph"	~ 5,
+                                 ResponseId == "R_2zu0piosWTgwP9x"	~ 19,
+                                 ResponseId == "R_3nCUjyFuIrQoH2s"	~ 22,
+                                 ResponseId == "R_3NKi20RvS58K8fS"	~ 14,
+                                 ResponseId == "R_3NP9i5Y4lgm5l5s"	~ 9,
+                                 ResponseId == "R_3rG59e3fgRuvJo7"	~ 2)) |> 
+  filter(!is.na(TherapistID))
+
+# select only relevant variables
+raw <- raw |> 
+  select(ResponseId, TherapistID, StudySite, YrsExperience:RaceMultiracial_0)
+
+# clean up column names
+raw <- raw |> 
+  rename(gi_man = Gender_ident_1,
+         gi_woman = Gender_ident_2,
+         gi_transm = Gender_ident_3,
+         gi_transw = Gender_ident_4,
+         gi_gq = Gender_ident_5,
+         gi_gncnb = Gender_ident_6,
+         gi_ts = Gender_ident_7,
+         gi_hijra = Gender_ident_8,
+         gi_other  = Gender_ident_9,
+         gi_other_text = Gender_ident_9_TEXT,
+         race_other = Race_6_TEXT,
+         race_multi_native = RaceMultiracial_3,
+         race_multi_asian = RaceMultiracial_2,
+         race_multi_pi = RaceMultiracial_4,
+         race_multi_black = RaceMultiracial_1,
+         race_multi_white = RaceMultiracial_0)
+
+```
+
+Recode years of experience from character to numeric: 
+```{r}
+#| warning: false
+
+raw <- raw |>
+  mutate(
+    MthsExp = case_when(
+    YrsExperience == "Less than one year" ~ 12,
+    YrsExperience == "2 months" ~ 2,
+    YrsExperience == "3 months" ~ 3
+  )) |> 
+  mutate(
+    YrsExp = as.numeric(YrsExperience) * 12, 
+    MthsExp = ifelse(is.na(MthsExp), YrsExp, MthsExp),
+    YrsExp = MthsExp/12) 
+```
+
+```{r}
+raw |> 
+  select(YrsExp) |> 
+  describe()
+```
+
+Descriptive frequencies for other relevant demos: 
+```{r}
+raw |> 
+  frq(Sex, gi_gncnb, TherapistSO, Ethnicity, Race)
+```
+
