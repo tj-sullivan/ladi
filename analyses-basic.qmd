@@ -145,13 +145,13 @@ Thus `apps_outcome` is the data frame for all analyses down below.
 
 ```{r}
 # first, select only the relevant variables here
-comp <- comp |> 
+comp_a <- comp |> 
   select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
   # select only the other community participants & BL assessment 
   filter(Condition == 2, Assessment == 0) 
 
 # create a function to run the comparison for all the outcomes at once
-output <- comp %>% 
+output_a <- comp_a %>% 
   select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
   # select only the other community participants & BL assessment 
   filter(Condition == 2, Assessment == 0) |> 
@@ -169,14 +169,50 @@ output <- comp %>%
   })
 
 # display output 
-output |> 
+output_a |> 
   # round p-values
   mutate_if(is.numeric, round, digits = 3) |> 
   # for ease here, remove the intercept b/c we don't need this 
   filter(term == "analytic_ynTRUE")
 
 # remove to clean up environment
-rm(output)
+rm(output_a)
+```
+
+Then also compare to the full sample:
+```{r}
+# first, select only the relevant variables here
+comp_b <- comp |> 
+  select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
+  filter(Assessment == 0) 
+
+# create a function to run the comparison for all the outcomes at once
+output_b <- comp_b %>% 
+  select(ParticipantID, Site, Condition, Assessment, analytic_yn, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm) |> 
+  # select only the other community participants & BL assessment 
+  filter(Assessment == 0) |> 
+  select(ParticipantID, Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm, analytic_yn) %>% 
+  pivot_longer(c(Sx_CASriskacts, AUDIT_sum, SIP_sum, HAMD_sum, BAI_sum, SIDAS_sum, IHS_mean, RS_mean, SOC_concealment_mean, LGBIS_identaffirm),
+               names_to = "variable",
+               values_to = "outcome") %>% 
+  mutate(variable = as.factor(variable)) %>% 
+  group_by(variable) %>% 
+  group_split() %>% 
+  map_dfr(.f = function(df) {
+    lm(outcome ~ 1 + analytic_yn, data = df) %>% 
+      tidy() %>% 
+      add_column(variable = unique(df$variable), .before = 1)
+  })
+
+# display output 
+output_b |> 
+  # round p-values
+  mutate_if(is.numeric, round, digits = 3) |> 
+  # for ease here, remove the intercept b/c we don't need this 
+  filter(term == "analytic_ynTRUE")
+
+# remove to clean up environment
+rm(output_b)
 ```
 
 # Early & mid session comparison

@@ -284,8 +284,6 @@ ggplot(predictions, aes(x = Assessment_c, y = estimate, color = as.factor(Averag
   theme_classic()  
 ```
 
-As all values of the LADI are significant, we are not going to create a J-N type plot that delineates when the slope moves from significant to not significant for this outcome.
-
 ## BAI
 
 ```{r}
@@ -822,137 +820,6 @@ o9.3 <- pool(m9.3_soc) |>
 o9.3
 ```
 
-# Follow-up analyses: 8-month and 12-month centering 
-
-To explore persistence of effects, we also re-ran the models for substance use consequences, depressive symptoms, and internalized heterosexism where we re-centered the assessment time point. 
-
-```{r}
-m4.6_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment^2) + Average_Affirm_c + Assessment*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = gaussian,
-                     corstr = "ar1")) 
-
-o4.6 <- pool(m4.6_hamd) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
-
-o4.6
-```
-
-
-## 8-month centering
-
-### SIP
-```{r}
-m3.4_sip <- with(imp, 
-               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_8m + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = poisson,
-                     corstr = "ar1")) 
-
-o3.4 <- pool(m3.4_sip) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "SIP_cov") |> relocate(variable, 1)
-
-o3.4
-```
-
-### HAMD
-```{r}
-m4.4_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_8m^2) + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = gaussian,
-                     corstr = "ar1")) 
-
-o4.4 <- pool(m4.4_hamd) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
-
-o4.4
-```
-
-
-### IHS
-```{r}
-m7.4_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_8m + Average_Affirm_c + Assessment_c_8m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = gaussian,
-                     corstr = "ar1")) 
-
-o7.4 <- pool(m7.4_ihs) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "IHS_cov") |> relocate(variable, 1)
-
-o7.4
-```
-
-## 12-month centering 
-
-
-### SIP
-```{r}
-m3.5_sip <- with(imp, 
-               geeglm(SIP_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + I(Assessment_c_12m^2) + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = poisson,
-                     corstr = "ar1")) 
-
-o3.5 <- pool(m3.5_sip) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "SIP_cov") |> relocate(variable, 1)
-
-o3.5
-```
-
-### HAMD
-```{r}
-m4.5_hamd <- with(imp, 
-               geeglm(HAMD_sum ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_12m + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = gaussian,
-                     corstr = "ar1")) 
-
-o4.5 <- pool(m4.5_hamd) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "HAMD_cov") |> relocate(variable, 1)
-
-o4.5
-```
-
-
-### IHS
-```{r}
-m7.5_ihs <- with(imp, 
-               geeglm(IHS_mean ~ Site + CMHT + MHgen + Medication + WAI_avg_c + Assessment_c_12m + Average_Affirm_c + Assessment_c_12m*Average_Affirm_c,
-                     id = ParticipantID,
-                     family = gaussian,
-                     corstr = "ar1")) 
-
-o7.5 <- pool(m7.5_ihs) |> 
-  summary() |> 
-  as.data.frame() |> 
-  mutate_if(is.numeric, round, digits = 3) |> 
-  mutate(variable = "IHS_cov") |> relocate(variable, 1)
-
-o7.5
-```
-
-
 # Output for reporting
 
 ## Tables
@@ -1031,9 +898,11 @@ ggsave(combined, filename = "output/interaction_figure.png", device = "png", wid
 sessionInfo()
 ```
 
-# REVISION SENSITIVITY ANALYSES:
+# SENSITIVITY ANALYSES FOR REVISION:
 
 ## TLFB therapist effects
+
+One reviewer noted that we should see whether results for TLFB are similar when doing a MLM that accounts for therapist nesting. 
 
 ```{r}
 m1.2_tlfb <- with(imp, 
@@ -1070,7 +939,10 @@ s1 <- glmer(Sx_CASriskacts ~ scale(Sx_totalacts_sum_c) + WAI_avg_c + Assessment_
      family = poisson)
 summary(s1) 
 ```
+
 ## Interaction with quadratic term
+
+One Reviewer wanted to see whether we would see a significant interaction of the LADI with the quadratic term. However, we chose not to report in the manuscript in the end because these effects are preliminary, were not originally hypothesized, and potentially capture overfitting to the data. 
 
 ### TLFB
 
@@ -1124,33 +996,25 @@ o5.4 <- pool(m5.4_bai) |>
 o5.4
 ```
 
-#### INTERACTION PROBING - TO DO 
+#### INTERACTION PROBING
 
-Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero
-
+Get a J-N type of estimate where we can see each value of the LADI and a test of whether the association between LADI and instantaneous linear change is significantly different from zero.
 ```{r}
-# this maps on to fig 7.1 in marginaleffects book - we get 1 value because it reflects the derivative here... 
-slopes(m5.4_bai, variables = "Assessment_c")
-avg_slopes(m5.4_bai, variables = "Assessment_c", by = Assessment_c)
+# this maps on to fig 7.1 in marginaleffects book - we get 1 value because it reflects the derivative here. 
+#slopes(m5.4_bai, variables = "Assessment_c")
+#avg_slopes(m5.4_bai, variables = "Assessment_c", by = Assessment_c)
 
-# THIS TAKES THAT AVERAGE DERIVATIVE BY THE LADI 
+# this takes that average derivative here and separates it out by the LADI - first at +/-1SD & mean, then for each value 
 avg_slopes(m5.4_bai, variables = "Assessment_c", by = c("Average_Affirm_c"), newdata = datagrid(Assessment_c = c(-1, 0, 1, 2), Average_Affirm_c = c(-1.2, 0, 1.2))) 
 # this will give you the same thing but with each value of the LADI 
 avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c")
 
-# THIS GETS YOU THE SLOPES AT EACH TIME POINT AS A FUNCTION OF THE LADI - THIS IS WHAT WE WANT TO REPORT; code in above line just averages across those changes so you can't really see it - this is testing what we see in the quadratic change model here :)  
+# THIS GETS YOU THE SLOPES AT EACH TIME POINT AS A FUNCTION OF THE LADI - this is the preferred term; code in above line just averages across those changes so you can't really see it - this is testing what we see in the quadratic change model here :)  
 # how to interpret these results here: 
 # CHANGE FROM BL TO 4M: both high and low levels of the LADI related to linear decreases in anxiety from BL to 4M - or "Anxiety significantly decreased from BL to 4M among clients who had therapists rated both high and low on the LADI"
 # CHANGE FROM 4M TO 8M: LADI was not significantly related to linear decreases in anxiety from 4M TO 8M - or "Anxiety remained steady from 4M to 8M among clients regardless of whether their therapists were rated high or low on the LADI"
 # CHANGE FROM 8M TO 12M: low, but not high, levels of the LADI related to linear INCREASES in anxiety from 8M to 12M - or "Then, anxiety symptoms significantly increased from 8M to 12M amoing clients who had therapists rated high, but NOT low, on the LADI" 
 avg_slopes(m5.4_bai, variables = "Assessment_c", by = c("Assessment_c", "Average_Affirm_c"), newdata = datagrid(Assessment_c = c(0, 1, 2), Average_Affirm_c = c(-1.2, 0, 1.2))) 
-```
-
-Get simple slopes at +/- SD (1.20):
-
-```{r}
-avg_slopes(m5.4_bai, variables = "Assessment_c", by = "Average_Affirm_c", newdata = datagrid(Average_Affirm_c = c(-1.2, 1.2)))
-
 ```
 
 Create a manual version of the `plot_predictions` function from `marginaleffects` package that can handle the imputed data, focusing on simple slopes & the instantaneous rate of change from pre-post treatment as this was the effect of interest.
